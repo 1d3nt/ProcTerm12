@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ProcTerm12</RootNamespace>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImportedNamespaces>JetBrains.Annotations=False,System.Diagnostics.CodeAnalysis=False,System.Runtime.InteropServices=False,System.Runtime.Versioning=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,VBWorkerServiceDeployer=True</ImportedNamespaces>
+    <OptionStrict>On</OptionStrict>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="CoreServices\ProcessManagement\Interfaces\" />
+    <Folder Include="CoreServices\WindowsApiInterop\Enums\" />
+    <Folder Include="CoreServices\WindowsApiInterop\Structs\" />
+    <Folder Include="Utilities\Interfaces\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Import Include="JetBrains.Annotations" />
+    <Import Include="System.Diagnostics.CodeAnalysis" />
+    <Import Include="System.Runtime.InteropServices" />
+    <Import Include="System.Runtime.Versioning" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0-preview.7.24405.7" />
+  </ItemGroup>
+
+</Project>
