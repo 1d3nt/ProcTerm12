@@ -13,7 +13,7 @@
     ''' can reduce overhead in performance-critical applications. Use this attribute with caution, as it bypasses
     ''' some of the security measures provided by the .NET runtime.
     ''' </remarks>
-    <Security.SuppressUnmanagedCodeSecurity>
+    <SuppressUnmanagedCodeSecurity>
     Friend NotInheritable Class NativeMethods
 
         ''' <summary>
@@ -51,6 +51,41 @@
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function CloseHandle(
             <[In]> hObject As IntPtr
+        ) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
+
+        ''' <summary>
+        ''' Terminates the specified process and all of its threads.
+        ''' </summary>
+        ''' <param name="hProcess">
+        ''' A handle to the process to be terminated. The handle must have the PROCESS_TERMINATE access right. 
+        ''' For more information, see Process Security and Access Rights.
+        ''' <see href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx">MSDN Documentation</see>.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="uExitCode">
+        ''' The exit code to be used by the process and threads terminated as a result of this call. Use the
+        ''' GetExitCodeProcess function to retrieve a process's exit value. Use the GetExitCodeThread function 
+        ''' to retrieve a thread's exit value.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. 
+        ''' </returns>
+        ''' <remarks>
+        ''' See <see href="https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-terminateprocess">TerminateProcess Documentation</see>.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' BOOL TerminateProcess(
+        '''   [in] HANDLE hProcess,
+        '''   [in] UINT uExitCode
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function TerminateProcess(
+            <[In]> hProcess As IntPtr,
+            <[In]> uExitCode As UInteger
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
     End Class

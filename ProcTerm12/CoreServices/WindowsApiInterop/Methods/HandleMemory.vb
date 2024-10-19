@@ -4,9 +4,7 @@
     ''' Provides utility methods for managing handles in P/Invoke operations.
     ''' </summary>
     ''' <remarks>
-    ''' This class contains methods to handle common operations related to handle management,
-    ''' such as closing handles if they are not null. It is marked as <c>NotInheritable</c> to
-    ''' prevent inheritance and ensure that the utility methods are used as intended.
+    ''' This class is marked as <c>NotInheritable</c> to prevent inheritance.
     ''' </remarks>
     Friend NotInheritable Class HandleManager
 
@@ -20,9 +18,9 @@
         ''' If the handle is equal to <see cref="NativeMethods.NullHandleValue"/>, which indicates an invalid or uninitialized handle, 
         ''' the method skips the closing operation.
         ''' </remarks>
-        Friend Shared Sub CloseTokenHandleIfNotNull(tokenHandle As IntPtr)
-            If Not Equals(tokenHandle, NativeMethods.NullHandleValue) Then
-                NativeMethods.CloseHandle(tokenHandle)
+        Friend Shared Sub CloseTokenHandleIfNotNull(tokenHandle As SafeTokenHandle)
+            If tokenHandle IsNot Nothing AndAlso Not tokenHandle.IsInvalid Then
+                tokenHandle.Dispose()
             End If
         End Sub
     End Class
