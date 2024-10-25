@@ -19,7 +19,7 @@
         ''' Terminates the specified process and all of its threads.
         ''' </summary>
         ''' <param name="processHandle">
-        ''' A handle to the process to be terminated. The handle must have the <see cref="ProcessAccessFlags.Terminate"/> access right.
+        ''' A handle to the process to be terminated. The handle must have the <see cref="ProcessAccessRights.Terminate"/> access right.
         ''' For more information, see Process Security and Access Rights.
         ''' <see href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx">MSDN Documentation</see>.
         ''' This parameter is passed with the <c>[In]</c> attribute.

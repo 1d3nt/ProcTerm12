@@ -23,5 +23,18 @@
                 tokenHandle.Dispose()
             End If
         End Sub
+
+        ''' <summary>
+        ''' Closes the process handle if it is not null.
+        ''' </summary>
+        ''' <param name="processHandle">The handle to be closed.</param>
+        ''' <remarks>
+        ''' This method checks if the provided <paramref name="processHandle"/> is valid before disposing of it.
+        ''' </remarks>
+        Friend Shared Sub CloseProcessHandleIfNotNull(processHandle As SafeProcessHandle)
+            If processHandle IsNot Nothing AndAlso Not processHandle.IsInvalid AndAlso Not processHandle.IsClosed Then
+                processHandle.Dispose()
+            End If
+        End Sub
     End Class
 End Namespace

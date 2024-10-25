@@ -42,6 +42,11 @@
         '''       <see cref="RegisterTerminationMethodProvider"/> - Registers the termination method provider service for selecting termination methods.
         '''     </description>
         '''   </item>
+        '''   <item>
+        '''     <description>
+        '''       <see cref="RegisterProcessTerminator"/> - Registers the process terminator service for handling process terminations.
+        '''     </description>
+        '''   </item>
         ''' </list>
         ''' </remarks>
         Private Shared Sub RegisterServices(services As IServiceCollection)
@@ -49,6 +54,7 @@
             RegisterUserInputServices(services)
             RegisterAppRunner(services)
             RegisterTerminationMethodProvider(services)
+            RegisterProcessTerminator(services)
         End Sub
 
         ''' <summary>
@@ -174,6 +180,31 @@
             AddServices(services, terminationMethodProviderServices)
         End Sub
 
+        ''' <summary>
+        ''' Registers the process terminator services.
+        ''' </summary>
+        ''' <param name="services">
+        ''' The service collection to which the process terminator services are added. This instance of <see cref="IServiceCollection"/> 
+        ''' is used to register services and their implementations for dependency injection.
+        ''' </param>
+        ''' <remarks>
+        ''' This method registers the following services:
+        ''' <list type="bullet">
+        '''   <item>
+        '''     <description>
+        '''       <see cref="IProcessTerminator"/> is registered as a transient service. This service is responsible for handling process terminations.
+        '''     </description>
+        '''   </item>
+        ''' </list>
+        ''' </remarks>
+        ''' <seealso cref="ProcessTerminator"/>
+        ''' <seealso cref="IProcessTerminator"/>
+        Private Shared Sub RegisterProcessTerminator(services As IServiceCollection)
+            Dim processTerminatorServices As New Dictionary(Of Type, Type) From {
+                        {GetType(IProcessTerminator), GetType(ProcessTerminator)}
+                    }
+            AddServices(services, processTerminatorServices)
+        End Sub
         ''' <summary>
         ''' Adds the specified services to the service collection.
         ''' </summary>

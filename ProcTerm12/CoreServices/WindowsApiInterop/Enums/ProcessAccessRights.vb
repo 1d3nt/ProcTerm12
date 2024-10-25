@@ -6,7 +6,7 @@
     ''' </summary>
     ''' <remarks>
     ''' The <see cref="ProcessAccessRights"/> enum defines constants for various process access rights that can be granted to a process.
-    ''' These rights are used in Windows API functions like <see cref="Methods.NativeMethods.OpenProcess"/> to specify access levels for process management.
+    ''' These rights are used in Windows API functions like <see cref="NativeMethods.OpenProcess"/> to specify access levels for process management.
     ''' 
     ''' Although there is no direct C++ enumeration for these values, they correspond to constants used in the Windows API:
     ''' <list type="bullet">
@@ -25,12 +25,13 @@
     ''' 
     ''' For detailed information about these access rights, refer to:
     ''' <see href="https://learn.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights">Process Security and Access Rights</see>.
-    ''' Note: The <c>UsedImplicitly</c> attribute is applied to each member of the enum to suppress warnings about these members being unused. 
+    ''' Note: The <see cref="UsedImplicitlyAttribute"/> attribute is applied to each member of the enum to suppress warnings about these members being unused. 
     ''' This ensures that the enum is kept complete for completeness and future extensibility, despite not being utilized directly in the current project.
     ''' </remarks>
 
     <UsedImplicitly, Flags>
     Friend Enum ProcessAccessRights As UInteger
+
         ''' <summary>
         ''' Grants all available access rights.
         ''' </summary>
@@ -59,6 +60,11 @@
         ''' </summary>
         <UsedImplicitly>
         VirtualMemoryRead = &H10
+
+        ''' <summary>
+        ''' Grants the right to write to virtual memory.
+        ''' </summary>
+        VirtualMemoryWrite = &H20
 
         ''' <summary>
         ''' Grants the right to duplicate a handle.

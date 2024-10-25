@@ -68,11 +68,13 @@
         '''     <description>Handles termination by terminating a thread pointed to by a pointer.</description>
         ''' </item>
         ''' </list>
-        Private Shared ReadOnly TerminationMethodsActions As New Dictionary(Of TerminationMethods, Func(Of Task)) From {
-            {TerminationMethods.NtTerminateProcess, AddressOf NtTerminateProcessHandler}
+        Private ReadOnly _terminationMethodsActions As New Dictionary(Of TerminationMethods, Func(Of Task)) From {
+            {TerminationMethods.NtTerminateProcess, AddressOf NtTerminateProcessHandler},
+            {TerminationMethods.CreateRemoteThreadExitProcess, AddressOf CreateRemoteThreadExitProcessHandler},
+            {TerminationMethods.TerminateThread, AddressOf TerminateThreadHandler}
         }
-        '{TerminationMethods.CreateRemoteThreadExitProcess, AddressOf CreateRemoteThreadExitProcessHandler},
-        '{TerminationMethods.TerminateThread, AddressOf TerminateThreadHandler},
+        ',
+
         '{TerminationMethods.SetThreadContext, AddressOf SetThreadContextHandler},
         '{TerminationMethods.DuplicateHandle, AddressOf DuplicateHandleHandler},
         '{TerminationMethods.JobObjectMethods, AddressOf JobObjectMethodsHandler},
@@ -99,15 +101,22 @@
         Private ReadOnly _processLauncher As IProcessLauncher
 
         ''' <summary>
+        ''' Handles the termination of processes using various methods.
+        ''' </summary>
+        Private ReadOnly _processTerminator As IProcessTerminator
+
+        ''' <summary>
         ''' Initializes a new instance of the <see cref="AppRunner"/> class and injects the required dependencies.
         ''' </summary>
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
         ''' <param name="terminationMethodProvider">The provider used to retrieve the termination method.</param>
         ''' <param name="processLauncher">The launcher used to start processes.</param>
-        Public Sub New(userPrompter As IUserPrompter, terminationMethodProvider As ITerminationMethodProvider, processLauncher As IProcessLauncher)
+        ''' <param name="processTerminator">The terminator used to handle process terminations.</param>
+        Public Sub New(userPrompter As IUserPrompter, terminationMethodProvider As ITerminationMethodProvider, processLauncher As IProcessLauncher, processTerminator As IProcessTerminator)
             _userPrompter = userPrompter
             _terminationMethodProvider = terminationMethodProvider
             _processLauncher = processLauncher
+            _processTerminator = processTerminator
         End Sub
 
         ''' <summary>
@@ -119,8 +128,9 @@
         ''' </remarks>
         Friend Async Function RunAsync() As Task Implements IAppRunner.RunAsync
             Dim terminationMethodNumber = GetTerminationMethod()
-            LaunchProcess() 
+            LaunchProcess()
             PromptUser(terminationMethodNumber)
+            Await DelayBeforeKillingProcess()
             Await ExecuteTerminationMethod(terminationMethodNumber)
         End Function
 
@@ -157,18 +167,47 @@
         End Sub
 
         ''' <summary>
+        ''' Introduces a delay before attempting to kill the process.
+        ''' </summary>
+        ''' <returns>
+        ''' A task that represents the asynchronous operation.
+        ''' </returns>
+        ''' <remarks>
+        ''' The <see cref="DelayBeforeKillingProcess"/> method prompts the user about the delay duration and then simulates a delay
+        ''' before proceeding to attempt to kill the specified process. This delay allows for any necessary preparation 
+        ''' before the process is terminated.
+        ''' </remarks>
+        Private Async Function DelayBeforeKillingProcess() As Task
+            Const delayMilliseconds = 5000
+            PromptUserAboutDelay(delayMilliseconds)
+            Await AsynchronousProcessor.SimulateDelayedResponse(delayMilliseconds)
+        End Function
+
+        ''' <summary>
+        ''' Prompts the user about the delay duration.
+        ''' </summary>
+        ''' <param name="delayMilliseconds">The delay duration in milliseconds.</param>
+        ''' <remarks>
+        ''' The <see cref="PromptUserAboutDelay"/> method uses the <see cref="IUserPrompter"/> service to notify the user about
+        ''' the delay before attempting to kill the specified process.
+        ''' </remarks>
+        Private Sub PromptUserAboutDelay(delayMilliseconds As Integer)
+            _userPrompter.Prompt($"The process will wait for {delayMilliseconds / 1000} seconds before proceeding to attempt to kill it.")
+        End Sub
+
+        ''' <summary>
         ''' Executes the termination method based on the provided termination method number.
         ''' </summary>
         ''' <param name="terminationMethodNumber">The number representing the termination method to be executed.</param>
         ''' <remarks>
         ''' This method converts the termination method number to the corresponding <see cref="TerminationMethods"/> enum value.
-        ''' It then checks if the termination method exists in the <see cref="TerminationMethodsActions"/> dictionary and invokes the associated action asynchronously.
+        ''' It then checks if the termination method exists in the <see cref="_terminationMethodsActions"/> dictionary and invokes the associated action asynchronously.
         ''' If the termination method is not found, it prompts the user with an invalid selection message.
         ''' </remarks>
         Private Async Function ExecuteTerminationMethod(terminationMethodNumber As Integer) As Task
             Dim terminationMethod = DirectCast(terminationMethodNumber, TerminationMethods)
             Dim action As Func(Of Task) = Nothing
-            If TerminationMethodsActions.TryGetValue(terminationMethod, action) Then
+            If _terminationMethodsActions.TryGetValue(terminationMethod, action) Then
                 Await action.Invoke()
             Else
                 _userPrompter.Prompt("Invalid termination method selected.")
@@ -179,10 +218,24 @@
         ''' Handles the termination of a process using the NtTerminateProcess method.
         ''' </summary>
         ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        Private Shared Async Function NtTerminateProcessHandler() As Task
-            Await Task.Run(Sub()
-                Console.WriteLine("NtTerminateProcessHandler: Terminating process using NtTerminateProcess method.")
-            End Sub)
+        Private Async Function NtTerminateProcessHandler() As Task
+            Await _processTerminator.NtTerminateProcessHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the CreateRemoteThread method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function CreateRemoteThreadExitProcessHandler() As Task
+            Await _processTerminator.CreateRemoteThreadExitProcessHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process by terminating each thread using the TerminateThread method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function TerminateThreadHandler() As Task
+            Await _processTerminator.TerminateThreadHandler()
         End Function
     End Class
 End Namespace

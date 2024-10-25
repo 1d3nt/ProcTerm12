@@ -15,7 +15,7 @@
     ''' 
     ''' For detailed information about these NTSTATUS values, refer to:
     ''' <see href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/596a1078-e883-4972-9bbc-49e60bebca55">NTSTATUS Documentation</see>.
-    ''' Note: The <c>UsedImplicitly</c> attribute is applied to each member of the enum to suppress warnings about these members being unused. 
+    ''' Note: The <see cref="UsedImplicitlyAttribute"/> attribute is applied to each member of the enum to suppress warnings about these members being unused. 
     ''' This ensures that the enum is kept complete for completeness and future extensibility, despite not being utilized directly in the current project.
     ''' </remarks>
     Friend Enum NtStatus As UInteger

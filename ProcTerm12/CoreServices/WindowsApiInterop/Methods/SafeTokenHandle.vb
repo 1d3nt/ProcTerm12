@@ -29,6 +29,9 @@
         ''' </summary>
         ''' <returns>True if the handle was released successfully; otherwise, false.</returns>
         Protected Overrides Function ReleaseHandle() As Boolean
+            If Equals(handle, NativeMethods.NullHandleValue) Then
+                Return Nothing
+            End If
             Return NativeMethods.CloseHandle(handle)
         End Function
 

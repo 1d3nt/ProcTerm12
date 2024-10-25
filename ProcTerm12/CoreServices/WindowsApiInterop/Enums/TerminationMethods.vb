@@ -13,12 +13,12 @@
         ''' <summary>
         ''' Creates a remote thread in the target process to execute ExitProcess.
         ''' </summary>
-        CreateRemoteThreadExitProcess
+        CreateRemoteThreadExitProcess = 2
 
         ''' <summary>
         ''' Terminates each thread of the target process using TerminateThread.
         ''' </summary>
-        TerminateThread
+        TerminateThread = 3
 
         ''' <summary>
         ''' Terminates threads by modifying their context to point to ExitProcess.

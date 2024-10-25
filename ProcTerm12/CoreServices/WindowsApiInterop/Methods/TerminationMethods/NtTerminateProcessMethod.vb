@@ -3,7 +3,7 @@
     ''' <summary>
     ''' Represents the method to terminate a process using NtTerminateProcess.
     ''' </summary>
-    Public Class NtTerminateProcessMethod
+    Friend Class NtTerminateProcessMethod
 
         ''' <summary>
         ''' Terminates the specified process and all of its threads.
@@ -19,24 +19,23 @@
         ''' to retrieve a thread's exit value.
         ''' </param>
         ''' <returns>
-        ''' An NTSTATUS value indicating the outcome of the termination attempt.
-        ''' If the function succeeds, the return value is STATUS_SUCCESS (0x0).
-        ''' If the function fails, the return value is an NTSTATUS error code.
+        ''' A boolean indicating whether the termination was successful.
         ''' </returns>
         ''' <remarks>
         ''' The <see cref="UnsafeNativeMethods.NtTerminateProcess"/> function provides additional functionality and flexibility compared to its counterpart, <see cref="NativeMethods.TerminateProcess"/>.
         ''' </remarks>
-        Friend shared Sub Kill(processHandle As SafeProcessHandle, exitStatus As Integer)
+        Friend Shared Function Kill(processHandle As SafeProcessHandle, exitStatus As Integer) As Boolean
             ProcessHandleValidator.ValidateProcessHandle(processHandle)
-
             Try
                 Dim status As NtStatus = UnsafeNativeMethods.NtTerminateProcess(processHandle.DangerousGetHandle(), exitStatus)
-                If status <> NtStatus.StatusSuccess Then
+                If status = NtStatus.StatusSuccess Then
+                    Return True
+                Else
                     Throw New Win32Exception(Marshal.GetLastWin32Error())
                 End If
             Finally
                 processHandle.Dispose()
             End Try
-        End Sub
+        End Function
     End Class
 End Namespace
