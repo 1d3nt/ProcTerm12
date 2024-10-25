@@ -19,9 +19,13 @@
         ''' the method skips the closing operation.
         ''' </remarks>
         Friend Shared Sub CloseTokenHandleIfNotNull(tokenHandle As SafeTokenHandle)
-            If tokenHandle IsNot Nothing AndAlso Not tokenHandle.IsInvalid Then
-                tokenHandle.Dispose()
-            End If
+            Try
+                If tokenHandle IsNot Nothing AndAlso Not tokenHandle.IsInvalid Then
+                    tokenHandle.Dispose()
+                End If
+            Catch ex As SEHException
+                UserPrompterSingleton.Instance.Prompt($"SEHException occurred while closing token handle: {ex.Message}")
+            End Try
         End Sub
 
         ''' <summary>
@@ -32,9 +36,13 @@
         ''' This method checks if the provided <paramref name="processHandle"/> is valid before disposing of it.
         ''' </remarks>
         Friend Shared Sub CloseProcessHandleIfNotNull(processHandle As SafeProcessHandle)
-            If processHandle IsNot Nothing AndAlso Not processHandle.IsInvalid AndAlso Not processHandle.IsClosed Then
-                processHandle.Dispose()
-            End If
+            Try
+                If processHandle IsNot Nothing AndAlso Not processHandle.IsInvalid AndAlso Not processHandle.IsClosed Then
+                    processHandle.Dispose()
+                End If
+            Catch ex As SEHException
+                UserPrompterSingleton.Instance.Prompt($"SEHException occurred while closing process handle: {ex.Message}")
+            End Try
         End Sub
     End Class
 End Namespace

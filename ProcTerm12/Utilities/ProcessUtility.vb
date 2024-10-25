@@ -24,5 +24,21 @@
             End If
             Return IntPtr.Zero
         End Function
+
+        ''' <summary>
+        ''' Checks if a process with the specified process ID is running.
+        ''' </summary>
+        ''' <param name="processId">The ID of the process to check.</param>
+        ''' <returns>
+        ''' <c>True</c> if the process is running; otherwise, <c>False</c>.
+        ''' </returns>
+        Friend Shared Function IsProcessRunning(processId As UInteger) As Boolean
+            Try
+                Dim process As Process = Process.GetProcessById(CInt(processId))
+                Return Not process.HasExited
+            Catch ex As ArgumentException
+                Return False
+            End Try
+        End Function
     End Class
 End Namespace
