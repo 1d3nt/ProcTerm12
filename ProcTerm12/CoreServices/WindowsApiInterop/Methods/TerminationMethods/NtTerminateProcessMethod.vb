@@ -33,8 +33,8 @@
                 Else
                     Throw New Win32Exception(Marshal.GetLastWin32Error())
                 End If
-            Finally
-                processHandle.Dispose()
+            Catch ex As Exception
+                Throw New InvalidOperationException("Failed to terminate the process.", ex)
             End Try
         End Function
     End Class
