@@ -1,4 +1,4 @@
-﻿Namespace CoreServices.WindowsApiInterop.Methods
+﻿Namespace CoreServices.WindowsApiInterop.Methods.MemoryManagement
 
     ''' <summary>
     ''' Provides methods for validating process handles.

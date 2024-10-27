@@ -1,4 +1,4 @@
-﻿Namespace CoreServices.WindowsApiInterop.Methods
+﻿Namespace CoreServices.WindowsApiInterop.Methods.MemoryManagement
 
     ''' <summary>
     ''' Provides utility methods for managing unmanaged memory in P/Invoke operations.
@@ -21,9 +21,13 @@
         ''' for more details.
         ''' </remarks>
         Friend Shared Sub FreeMemoryIfNotNull(memoryPointer As IntPtr)
-            If Not Equals(memoryPointer, NativeMethods.NullHandleValue) Then
-                Marshal.FreeHGlobal(memoryPointer)
-            End If
+            Try
+                If Not Equals(memoryPointer, NativeMethods.NullHandleValue) Then
+                    Marshal.FreeHGlobal(memoryPointer)
+                End If
+            Catch ex As SEHException
+                UserPrompterSingleton.Instance.Prompt($"SEHException occurred while freeing memory: {ex.Message}")
+            End Try
         End Sub
     End Class
 End Namespace

@@ -30,7 +30,7 @@
         Friend Shared Function Kill(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             Try
                 ProcessHandleValidator.ValidateProcessHandle(processHandle)
-                Dim processId As UInteger = GetProcessId(processHandle, userPrompter)
+                Dim processId As UInteger = ProcessUtility.GetProcessId(processHandle, userPrompter)
                 If processId = 0 Then
                     Return False
                 End If
@@ -61,20 +61,6 @@
         End Function
 
         ''' <summary>
-        ''' Retrieves the process ID for the specified process handle.
-        ''' </summary>
-        ''' <param name="processHandle">The handle to the process.</param>
-        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
-        ''' <returns>The process ID, or 0 if an error occurred.</returns>
-        Private Shared Function GetProcessId(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As UInteger
-            Dim processId As UInteger = NativeMethods.GetProcessId(processHandle.DangerousGetHandle())
-            If processId = 0 Then
-                userPrompter.Prompt("Failed to get process ID. Last error: " & Marshal.GetLastWin32Error())
-            End If
-            Return processId
-        End Function
-
-        ''' <summary>
         ''' Retrieves the address of the ExitProcess function in kernel32.dll.
         ''' </summary>
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
@@ -89,6 +75,7 @@
             If Equals(exitProcessAddress, NativeMethods.NullHandleValue) Then
                 userPrompter.Prompt("Failed to get address of ExitProcess. Last error: " & Marshal.GetLastWin32Error())
             End If
+            Debug.WriteLine(exitProcessAddress.ToString())
             Return exitProcessAddress
         End Function
 

@@ -1,4 +1,4 @@
-﻿Namespace CoreServices.WindowsApiInterop.Methods
+﻿Namespace CoreServices.WindowsApiInterop.Methods.MemoryManagement
 
     ''' <summary>
     ''' Provides utility methods for managing handles in P/Invoke operations.
@@ -24,7 +24,9 @@
                     tokenHandle.Dispose()
                 End If
             Catch ex As SEHException
-                UserPrompterSingleton.Instance.Prompt($"SEHException occurred while closing token handle: {ex.Message}")
+                LogException("SEHException occurred while closing token handle", ex)
+            Catch ex As Exception
+                LogException("An unexpected error occurred while closing token handle", ex)
             End Try
         End Sub
 
@@ -41,8 +43,20 @@
                     processHandle.Dispose()
                 End If
             Catch ex As SEHException
-                UserPrompterSingleton.Instance.Prompt($"SEHException occurred while closing process handle: {ex.Message}")
+                LogException("SEHException occurred while closing process handle", ex)
+            Catch ex As Exception
+                LogException("An unexpected error occurred while closing process handle", ex)
             End Try
+        End Sub
+
+        ''' <summary>
+        ''' Logs exception details to the trace.
+        ''' </summary>
+        ''' <param name="message">The custom message to log.</param>
+        ''' <param name="ex">The exception to log.</param>
+        Private Shared Sub LogException(message As String, ex As Exception)
+            Trace.WriteLine($"{message}: {ex.Message}")
+            Trace.WriteLine($"Stack Trace: {ex.StackTrace}")
         End Sub
     End Class
 End Namespace

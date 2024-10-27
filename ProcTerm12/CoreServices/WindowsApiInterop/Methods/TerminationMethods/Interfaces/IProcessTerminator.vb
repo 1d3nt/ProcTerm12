@@ -22,5 +22,12 @@
         ''' </summary>
         ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Function CreateRemoteThreadExitProcessHandler() As Task
+
+        ''' <summary>
+        ''' Handles the termination of a process by duplicating the process handle and performing 
+        ''' cleanup operations, such as closing or modifying the duplicated handle to achieve termination.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Function DuplicateHandleHandler() As Task
     End Interface
 End Namespace

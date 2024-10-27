@@ -23,12 +23,12 @@
         ''' <summary>
         ''' Terminates threads by modifying their context to point to ExitProcess.
         ''' </summary>
-        SetThreadContext
+        SetThreadContext = 4
 
         ''' <summary>
         ''' Closes handles of the target process to invalidate resources.
         ''' </summary>
-        DuplicateHandle
+        DuplicateHandle = 5
 
         ''' <summary>
         ''' Uses job object methods to terminate the target process.

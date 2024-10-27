@@ -71,12 +71,13 @@
         Private ReadOnly _terminationMethodsActions As New Dictionary(Of TerminationMethods, Func(Of Task)) From {
             {TerminationMethods.NtTerminateProcess, AddressOf NtTerminateProcessHandler},
             {TerminationMethods.CreateRemoteThreadExitProcess, AddressOf CreateRemoteThreadExitProcessHandler},
-            {TerminationMethods.TerminateThread, AddressOf TerminateThreadHandler}
+            {TerminationMethods.TerminateThread, AddressOf TerminateThreadHandler},
+            {TerminationMethods.DuplicateHandle, AddressOf DuplicateHandleHandler}
         }
         ',
 
         '{TerminationMethods.SetThreadContext, AddressOf SetThreadContextHandler},
-        '{TerminationMethods.DuplicateHandle, AddressOf DuplicateHandleHandler},
+        '
         '{TerminationMethods.JobObjectMethods, AddressOf JobObjectMethodsHandler},
         '{TerminationMethods.DebugObjectMethods, AddressOf DebugObjectMethodsHandler},
         '{TerminationMethods.VirtualQueryExNoAccess, AddressOf VirtualQueryExNoAccessHandler},
@@ -236,6 +237,14 @@
         ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Private Async Function TerminateThreadHandler() As Task
             Await _processTerminator.TerminateThreadHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process by duplicating the handle and performing necessary operations to terminate the process.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function DuplicateHandleHandler() As Task
+            Await _processTerminator.DuplicateHandleHandler()
         End Function
     End Class
 End Namespace

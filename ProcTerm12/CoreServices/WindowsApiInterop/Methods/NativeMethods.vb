@@ -16,6 +16,8 @@
     <SuppressUnmanagedCodeSecurity>
     Friend NotInheritable Class NativeMethods
 
+#Region " Comnstants "
+
         ''' <summary>
         ''' Represents a null handle value used in P/Invoke calls.
         ''' </summary>
@@ -23,6 +25,27 @@
         ''' This field is used to represent a null handle (<see cref="IntPtr.Zero"/>) in P/Invoke calls to unmanaged code.
         ''' </remarks>
         Friend Shared ReadOnly NullHandleValue As IntPtr = IntPtr.Zero
+
+        ''' <summary>
+        ''' Represents the success status code returned by wait functions, such as <see cref="WaitForSingleObject"/>, 
+        ''' when a specified object is in the signaled state.
+        ''' </summary>
+        ''' <remarks>
+        ''' The <c>WaitObject0</c> constant indicates that the wait operation on a specified object, such as a process or thread handle,
+        ''' was successful and that the object is in a signaled state. This value, typically <c>0</c>, is used by Windows API functions
+        ''' to show that a requested event has occurred, and execution can proceed.
+        ''' </remarks>
+        Friend Const WaitObject0 As UInteger = &H0UI
+
+        ''' <summary>
+        ''' Represents the code returned by <see cref="GetExitCodeProcess"/> to indicate that a process is still active.
+        ''' </summary>
+        ''' <remarks>
+        ''' The <c>StillActive</c> constant, with a typical value of <c>259</c>, is used in conjunction with <see cref="GetExitCodeProcess"/>
+        ''' to indicate that the specified process has not yet terminated. When the process is still running, the function returns this value
+        ''' to signify that the process has not exited and remains active.
+        ''' </remarks>
+        Friend Const StillActive As UInteger = &H103UI
 
         ''' <summary>
         ''' Specifies the access right to terminate a thread.
@@ -63,9 +86,16 @@
         Friend Const MemRelease As UInteger = &H8000
 
         ''' <summary>
-        ''' Allocates all available address space, up to the maximum, in the process's virtual memory.
+        ''' Represents an infinite timeout value used in synchronization functions, such as <see cref="WaitForSingleObject"/>.
         ''' </summary>
+        ''' <remarks>
+        ''' The <c>Infinite</c> constant can be used as the timeout parameter to instruct the system to wait indefinitely for a 
+        ''' synchronization event, such as a process handle or thread handle. This constant is set to <c>-1</c> (or <c>&HFFFFFFFFUI</c>), 
+        ''' which is interpreted by Windows API functions as an infinite wait period. Additionally, this value is used for memory-related 
+        ''' operations where an "unbounded" or "maximum" size needs to be indicated, as with <c>MemInfinite</c>.
+        ''' </remarks>
         Friend Const MemInfinite As UInteger = &HFFFFFFFFUI
+#End Region ' Constants
 
         ''' <summary>
         ''' Closes an open object handle.
@@ -394,20 +424,18 @@
         '''   [in] LPCSTR  lpProcName
         ''' );
         ''' </code>
-        ''' </remarks>
-        <SuppressMessage("Microsoft.Performance", "CA2101:Specify marshaling", Justification:="Various marshaling options were tested, but all resulted in errors  The default string handling is used as it aligns with the unmanaged API requirements.")>
-        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
-        Friend Shared Function GetProcAddress(
-            <[In]> hModule As IntPtr,
-            <[In]> lpProcName As String
-        ) As IntPtr
-        End Function
-
-        ''' <remarks>
-        ''' We’ve tried several ways to marshal the <paramref name="lpServiceName"/> string, including various `MarshalAs` options, but all of them resulted in errors like code 1060 (ERROR_SERVICE_DOES_NOT_EXIST). 
+        '''
+        ''' We’ve tried several ways to marshal the <paramref name="lpProcName"/> string, including various `MarshalAs` options, but all of them resulted in a return value of 0. 
         ''' This suggests that the marshalling may not align with the expectations of the unmanaged function. If the function does not work with specific marshalling types, it's best to use default string handling and ensure 
         ''' that the string encoding and format match the unmanaged API’s requirements. Note that this approach might allow partially trusted callers to interact with unmanaged code, which could pose security risks if not handled properly.
         ''' </remarks>
+        <SuppressMessage("Microsoft.Performance", "CA2101:Specify marshaling", Justification:="Various marshaling options were tested, but all resulted in a return value of 0. The default string handling is used as it aligns with the unmanaged API requirements.")>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function GetProcAddress(
+           <[In]> hModule As IntPtr,
+           <[In]> lpProcName As String
+        ) As IntPtr
+        End Function
 
         ''' <summary>
         ''' Ends the specified process and all of its threads.
@@ -508,7 +536,15 @@
         '''   [in, optional] LPCSTR lpModuleName
         ''' );
         ''' </code>
+        '''
+        ''' We’ve tried several ways to marshal the <paramref name="lpModuleName"/> string, including various `MarshalAs` options, but all of them resulted in a return value of 0. 
+        ''' This suggests that the marshalling may not align with the expectations of the unmanaged function. If the function does not work with specific marshalling types, it's best to use default string handling and ensure 
+        ''' that the string encoding and format match the unmanaged API’s requirements. Note that this approach might allow partially trusted callers to interact with unmanaged code, which could pose security risks if not handled properly.
+        '''
+        ''' The libloaderapi.h header defines GetModuleHandle as an alias which automatically selects the ANSI or Unicode version of this function based on the definition of the UNICODE preprocessor constant. 
+        ''' Mixing usage of the encoding-neutral alias with code that is not encoding-neutral can lead to mismatches that result in compilation or runtime errors. For more information, see Conventions for Function Prototypes.
         ''' </remarks>
+        <SuppressMessage("Microsoft.Performance", "CA2101:Specify marshaling", Justification:="Various marshaling options were tested, but all resulted in a return value of 0. The default string handling is used as it aligns with the unmanaged API requirements.")>
         <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Ansi, SetLastError:=True)>
         Friend Shared Function GetModuleHandle(
            <[In], [Optional]> lpModuleName As String
@@ -627,7 +663,7 @@
         ''' <c>MEM_RELEASE</c> or <c>MEM_DECOMMIT</c>.
         ''' </param>
         ''' <returns>
-        ''' If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended error information, call <see cref="Marshal.GetLastWin32Error()"/>.
+        ''' If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended error information, call <see cref="Marshal.GetLastWin32Error"/>.
         ''' </returns>
         ''' <remarks>
         ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualfreeex">VirtualFreeEx documentation</see> for more information.
@@ -687,5 +723,36 @@
         ) As UInteger
         End Function
 
+        ''' <summary>
+        ''' Retrieves the termination status of a specified process.
+        ''' </summary>
+        ''' <param name="hProcess">
+        ''' A handle to the process. The handle must have the <see cref="ProcessAccessRights.QueryInformation" /> access right.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="lpExitCode">
+        ''' A pointer to a variable that receives the exit code of the process. This parameter is passed with the <c>[Out]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is nonzero (<c>True</c>). If the function fails, the return value is zero (<c>False</c>). 
+        ''' To get extended error information, call <see cref="Marshal.GetLastWin32Error"/>.
+        ''' </returns>
+        ''' <remarks>
+        ''' The <c>GetExitCodeProcess</c> function retrieves the exit code that the process has returned when it terminates.
+        ''' For more details, refer to the <a href="https://learn.microsoft.com/en-us/windows/win32/api/processthreads/nf-processthreads-getexitcodeprocess">GetExitCodeProcess</a> documentation.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' BOOL GetExitCodeProcess(
+        '''   [in] HANDLE hProcess,
+        '''   [out] LPDWORD lpExitCode
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function GetExitCodeProcess(
+           <[In]> hProcess As IntPtr,
+           <Out> ByRef lpExitCode As UInteger
+        ) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
     End Class
 End Namespace

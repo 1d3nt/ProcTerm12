@@ -34,6 +34,8 @@
 
         ''' <summary>
         ''' Grants all available access rights.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         All = &H1F0FFF
@@ -45,18 +47,24 @@
 
         ''' <summary>
         ''' Grants the right to create a thread in the process.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         CreateThread = &H2
 
         ''' <summary>
         ''' Grants the right to perform virtual memory operations.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         VirtualMemoryOperation = &H8
 
         ''' <summary>
         ''' Grants the right to read virtual memory.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         VirtualMemoryRead = &H10
@@ -68,44 +76,67 @@
 
         ''' <summary>
         ''' Grants the right to duplicate a handle.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         DuplicateHandle = &H40
 
         ''' <summary>
         ''' Grants the right to create a process in the process.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         CreateProcess = &H80
 
         ''' <summary>
         ''' Grants the right to set quotas for the process.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         SetQuota = &H100
 
         ''' <summary>
         ''' Grants the right to set process information.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         SetInformation = &H200
 
         ''' <summary>
         ''' Grants the right to query process information.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         QueryInformation = &H400
 
         ''' <summary>
         ''' Grants the right to query limited information about the process.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         QueryLimitedInformation = &H1000
 
         ''' <summary>
         ''' Grants the right to synchronize with the process.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
         <UsedImplicitly>
         Synchronize = &H100000
+
+        ''' <summary>
+        ''' Grants no access rights.
+        ''' </summary>
+        ''' <remarks>
+        ''' Corresponds to <c>0</c> in C++. This member indicates that no specific access rights are granted to the process. 
+        ''' This can be useful in scenarios where a default or minimal access level is required without granting any privileges.
+        ''' </remarks>
+        DefaultAccess = &H0
     End Enum
 End Namespace

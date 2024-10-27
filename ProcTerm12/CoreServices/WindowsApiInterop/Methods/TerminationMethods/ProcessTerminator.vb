@@ -44,6 +44,15 @@
         Friend Async Function CreateRemoteThreadExitProcessHandler() As Task Implements IProcessTerminator.CreateRemoteThreadExitProcessHandler
             Await Task.Run(AddressOf TerminateProcessUsingCreateRemoteThreadExitProcess)
         End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process by duplicating the process handle 
+        ''' and performing the necessary operations to terminate the process.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Friend Async Function DuplicateHandleHandler() As Task Implements IProcessTerminator.DuplicateHandleHandler
+            Await Task.Run(AddressOf TerminateProcessUsingDuplicateHandle)
+        End Function
 #End Region ' Async Wrappers 
 
 #Region " Synchronous Wrappers "
@@ -66,6 +75,16 @@
             Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
             Return CreateRemoteThreadExit.Kill(safeHandle, userPrompter)
         End Function
+
+        ''' <summary>
+        ''' Wrapper method for DuplicateHandle.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function DuplicateHandleWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return DuplicateHandle.Kill(safeHandle, userPrompter)
+        End Function
 #End Region ' Synchronous Wrappers
 
         ''' <summary>
@@ -87,6 +106,13 @@
         ''' </summary>
         Private Sub TerminateProcessUsingCreateRemoteThreadExitProcess()
             TerminateProcess(AddressOf CreateRemoteThreadExitWrapper, "CreateRemoteThreadExitProcess")
+        End Sub
+
+        ''' <summary>
+        ''' Attempts to terminate a process using the DuplicateHandle method.
+        ''' </summary>
+        Private Sub TerminateProcessUsingDuplicateHandle()
+            TerminateProcess(AddressOf DuplicateHandleWrapper, "DuplicateHandle")
         End Sub
 
         ''' <summary>

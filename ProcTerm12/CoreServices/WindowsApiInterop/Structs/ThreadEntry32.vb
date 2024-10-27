@@ -42,10 +42,13 @@
         ''' </summary>
         ''' <remarks>
         ''' This member is reserved for future use and should not be referenced.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
         ''' <example>
         ''' In C++: <code>DWORD cntUsage;</code>
         ''' </example>
+        <UsedImplicitly>
         Friend cntUsage As UInteger
 
         ''' <summary>
@@ -77,10 +80,13 @@
         ''' </summary>
         ''' <remarks>
         ''' The <code>tpBasePri</code> member specifies the base priority level of the thread.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
         ''' <example>
         ''' In C++: <code>LONG tpBasePri;</code>
         ''' </example>
+        <UsedImplicitly>
         Friend tpBasePri As Integer
 
         ''' <summary>
@@ -89,10 +95,13 @@
         ''' <remarks>
         ''' The <code>tpDeltaPri</code> member indicates the difference between the thread's base 
         ''' priority and the priority level of its associated process.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
         ''' <example>
         ''' In C++: <code>LONG tpDeltaPri;</code>
         ''' </example>
+        <UsedImplicitly>
         Friend tpDeltaPri As Integer
 
         ''' <summary>

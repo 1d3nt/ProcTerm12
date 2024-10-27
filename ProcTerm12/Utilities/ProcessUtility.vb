@@ -3,7 +3,7 @@
     ''' <summary>
     ''' Provides utility methods for process management.
     ''' </summary>
-    Public NotInheritable Class ProcessUtility
+    Friend NotInheritable Class ProcessUtility
 
         ''' <summary>
         ''' Retrieves the handle of the first running Notepad process.
@@ -17,7 +17,6 @@
         ''' </remarks>
         Friend Shared Function GetNotepadHandle() As IntPtr
             Const processName = "notepad"
-
             Dim notepadProcess = Process.GetProcessesByName(processName).FirstOrDefault()
             If notepadProcess IsNot Nothing Then
                 Return notepadProcess.Handle
@@ -39,6 +38,20 @@
             Catch ex As ArgumentException
                 Return False
             End Try
+        End Function
+
+        ''' <summary>
+        ''' Retrieves the process ID for the specified process handle.
+        ''' </summary>
+        ''' <param name="processHandle">The handle to the process.</param>
+        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
+        ''' <returns>The process ID, or 0 if an error occurred.</returns>
+        Friend Shared Function GetProcessId(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As UInteger
+            Dim processId As UInteger = NativeMethods.GetProcessId(processHandle.DangerousGetHandle())
+            If processId = 0 Then
+                userPrompter.Prompt("Failed to get process ID. Last error: " & Marshal.GetLastWin32Error())
+            End If
+            Return processId
         End Function
     End Class
 End Namespace

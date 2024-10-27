@@ -1,4 +1,4 @@
-﻿Namespace CoreServices.WindowsApiInterop.Methods
+﻿Namespace CoreServices.WindowsApiInterop.Methods.MemoryManagement
 
     ''' <summary>
     ''' A SafeHandle wrapper for a thread handle to ensure proper resource management.
@@ -38,9 +38,6 @@
         ''' <param name="threadHandle">The thread handle to wrap.</param>
         ''' <returns>A new <see cref="SafeThreadHandle"/> instance.</returns>
         Public Shared Function FromHandle(threadHandle As IntPtr) As SafeThreadHandle
-            If Equals(threadHandle, NativeMethods.NullHandleValue) Then
-                Return Nothing
-            End If
             Return New SafeThreadHandle(threadHandle, True)
         End Function
     End Class

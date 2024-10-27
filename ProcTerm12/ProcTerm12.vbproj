@@ -4,8 +4,9 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>ProcTerm12</RootNamespace>
     <TargetFramework>net8.0</TargetFramework>
-    <ImportedNamespaces>JetBrains.Annotations=False,Microsoft.Extensions.DependencyInjection=False,Microsoft.Extensions.DependencyInjection.Extensions=False,Microsoft.Win32.SafeHandles=False,ProcTerm12.Application=False,ProcTerm12.Application.Interfaces=False,ProcTerm12.CoreServices.ProcessManagement=False,ProcTerm12.CoreServices.ProcessManagement.Interfaces=False,ProcTerm12.CoreServices.WindowsApiInterop.Enums=False,ProcTerm12.CoreServices.WindowsApiInterop.Methods=False,ProcTerm12.CoreServices.WindowsApiInterop.Methods.TerminationMethods=False,ProcTerm12.CoreServices.WindowsApiInterop.Methods.TerminationMethods.Interfaces=False,ProcTerm12.CoreServices.WindowsApiInterop.Structs=False,ProcTerm12.Utilities=False,ProcTerm12.Utilities.ErrorHandling=False,ProcTerm12.Utilities.ErrorHandling.Interfaces=False,ProcTerm12.Utilities.Interfaces=False,System.ComponentModel=False,System.Diagnostics.CodeAnalysis=False,System.Runtime.InteropServices=False,System.Runtime.Versioning=False,System.Security=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,ProcTerm12=True</ImportedNamespaces>
+    <ImportedNamespaces>JetBrains.Annotations=False,Microsoft.Extensions.DependencyInjection=False,Microsoft.Extensions.DependencyInjection.Extensions=False,Microsoft.Win32.SafeHandles=False,ProcTerm12.Application=False,ProcTerm12.Application.Interfaces=False,ProcTerm12.CoreServices.ProcessManagement=False,ProcTerm12.CoreServices.ProcessManagement.Interfaces=False,ProcTerm12.CoreServices.WindowsApiInterop.Enums=False,ProcTerm12.CoreServices.WindowsApiInterop.Methods=False,ProcTerm12.CoreServices.WindowsApiInterop.Methods.MemoryManagement=False,ProcTerm12.CoreServices.WindowsApiInterop.Methods.TerminationMethods=False,ProcTerm12.CoreServices.WindowsApiInterop.Methods.TerminationMethods.Interfaces=False,ProcTerm12.CoreServices.WindowsApiInterop.Structs=False,ProcTerm12.Utilities=False,ProcTerm12.Utilities.ErrorHandling=False,ProcTerm12.Utilities.ErrorHandling.Interfaces=False,ProcTerm12.Utilities.Interfaces=False,System.ComponentModel=False,System.Diagnostics.CodeAnalysis=False,System.Runtime.InteropServices=False,System.Runtime.Versioning=False,System.Security=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,ProcTerm12=True</ImportedNamespaces>
     <OptionStrict>On</OptionStrict>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,7 @@
     <Import Include="ProcTerm12.CoreServices.ProcessManagement.Interfaces" />
     <Import Include="ProcTerm12.CoreServices.WindowsApiInterop.Enums" />
     <Import Include="ProcTerm12.CoreServices.WindowsApiInterop.Methods" />
+    <Import Include="ProcTerm12.CoreServices.WindowsApiInterop.Methods.MemoryManagement" />
     <Import Include="ProcTerm12.CoreServices.WindowsApiInterop.Methods.TerminationMethods" />
     <Import Include="ProcTerm12.CoreServices.WindowsApiInterop.Methods.TerminationMethods.Interfaces" />
     <Import Include="ProcTerm12.CoreServices.WindowsApiInterop.Structs" />

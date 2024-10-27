@@ -1,4 +1,4 @@
-﻿Namespace CoreServices.WindowsApiInterop.Methods
+﻿Namespace CoreServices.WindowsApiInterop.Methods.MemoryManagement
 
     ''' <summary>
     ''' A SafeHandle wrapper for a token handle to ensure proper resource management.
@@ -41,9 +41,6 @@
         ''' <param name="tokenHandle">The token handle to wrap.</param>
         ''' <returns>A new <see cref="SafeTokenHandle"/> instance.</returns>
         Public Shared Function FromHandle(tokenHandle As IntPtr) As SafeTokenHandle
-            If Equals(tokenHandle, NativeMethods.NullHandleValue) Then
-                Return Nothing
-            End If
             Return New SafeTokenHandle(tokenHandle, True)
         End Function
     End Class
