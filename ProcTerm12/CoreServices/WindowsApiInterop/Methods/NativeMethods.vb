@@ -445,15 +445,17 @@
         ''' </param>
         ''' <remarks>
         ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-exitprocess">ExitProcess documentation</see> for more information.
-        '''
-        ''' The function signature in C++ is:
+        ''' 
+        ''' This function signature in C++ is:
         ''' <code>
         ''' void ExitProcess(
         '''   [in] UINT uExitCode
         ''' );
         ''' </code>
+        ''' 
+        ''' This signature <cref="ExitProcess"/> is kept for potential future use and completeness as it relates to process termination within the project. 
         ''' </remarks>
-        <DllImport(ExternDll.Kernel32)>
+        <UsedImplicitly, DllImport(ExternDll.Kernel32)>
         Friend Shared Sub ExitProcess(
             <[In]> uExitCode As UInteger
         )
@@ -824,8 +826,8 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Unicode, SetLastError:=True)>
         Friend Shared Function AssignProcessToJobObject(
-            <[In]> hJob As IntPtr,
-            <[In]> hProcess As IntPtr
+            <[In]> hJob As SafeJobHandle,
+            <[In]> hProcess As SafeProcessHandle
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
 
@@ -857,7 +859,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function TerminateJobObject(
-            <[In]> hJob As IntPtr,
+            <[In]> hJob As SafeJobHandle,
             <[In]> uExitCode As UInteger
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
@@ -902,7 +904,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Unicode, SetLastError:=True)>
         Friend Shared Function SetInformationJobObject(
-            <[In]> hJob As IntPtr,
+            <[In]> hJob As SafeJobHandle,
             <[In]> infoType As JobObjectInformationClass,
             <[In]> lpJobObjectInfo As IntPtr,
             <[In]> cbJobObjectInfoLength As UInteger

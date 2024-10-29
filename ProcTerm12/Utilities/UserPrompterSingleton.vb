@@ -8,7 +8,7 @@
         ''' <summary>
         ''' The user prompter used for displaying messages to the user.
         ''' </summary>
-        Private Shared _userPrompter As IUserPrompter
+        Private Shared ReadOnly InstanceValue As New Lazy(Of IUserPrompter)(Function() New UserPrompter())
 
         ''' <summary>
         ''' Private constructor to prevent instantiation.
@@ -22,10 +22,7 @@
         ''' <returns>The single instance of IUserPrompter.</returns>
         Public Shared ReadOnly Property Instance As IUserPrompter
             Get
-                If _userPrompter Is Nothing Then
-                    _userPrompter = New UserPrompter()
-                End If
-                Return _userPrompter
+                Return InstanceValue.Value
             End Get
         End Property
     End Class

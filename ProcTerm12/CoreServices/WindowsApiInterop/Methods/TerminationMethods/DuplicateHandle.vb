@@ -43,16 +43,19 @@
             If processId = 0 Then
                 Return False
             End If
-            Dim handle = NativeMethods.OpenProcess(ProcessAccessRights.DuplicateHandle, False, processId)
+            Dim handle As IntPtr = IntPtr.Zero
+            Dim clientId As New ClientId(New IntPtr(processId), IntPtr.Zero)
+            Dim objectAttributes As New ObjectAttributes()
+            Dim status As Integer = UnsafeNativeMethods.NtOpenProcess(handle, ProcessAccessRights.DuplicateHandle, objectAttributes, clientId)
             Dim isSuccess As Boolean
             Try
-                If Not Equals(handle, NativeMethods.NullHandleValue) Then
+                If status = 0 AndAlso Not Equals(handle, IntPtr.Zero) Then
                     isSuccess = CloseAllHandles(handle, userPrompter)
                     Dim waitSuccess As Boolean = WaitForProcessTermination(handle, userPrompter)
                     isSuccess = isSuccess AndAlso waitSuccess
                 End If
             Finally
-                If Not Equals(handle, NativeMethods.NullHandleValue) Then
+                If Not Equals(handle, IntPtr.Zero) Then
                     HandleManager.CloseHandleIfNotNull(handle)
                 End If
             End Try
@@ -61,6 +64,7 @@
             End If
             Return isSuccess
         End Function
+
 
         ''' <summary>
         ''' Closes all handles associated with the process.

@@ -206,5 +206,46 @@
             <[In]> timeout As IntPtr
         ) As Integer
         End Function
+
+        ''' <summary>
+        ''' Opens a handle to a specified process with the desired access rights.
+        ''' </summary>
+        ''' <param name="ProcessHandle">
+        ''' A pointer to a <c>HANDLE</c> variable that will receive the process handle. This parameter is passed with the <c>[Out]</c> attribute.
+        ''' </param>
+        ''' <param name="DesiredAccess">
+        ''' An <c>ACCESS_MASK</c> value that specifies the requested access rights to the process handle. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="ObjectAttributes">
+        ''' A reference to an <see cref="ObjectAttributes"/> structure that specifies object name, attributes, and security descriptor. 
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="ClientId">
+        ''' A reference to a <see cref="ClientId"/> structure that specifies the target process by its process ID and optionally thread ID. 
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' Returns <c>STATUS_SUCCESS</c> if the function call is successful. Otherwise, returns an error code indicating failure.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, see <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntddk/nf-ntddk-ntopenprocess">NtOpenProcess documentation</a>.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' __kernel_entry NTSYSCALLAPI NTSTATUS NtOpenProcess(
+        '''   [out]          PHANDLE            ProcessHandle,
+        '''   [in]           ACCESS_MASK        DesiredAccess,
+        '''   [in]           POBJECT_ATTRIBUTES ObjectAttributes,
+        '''   [in, optional] PCLIENT_ID         ClientId
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Ntdll, SetLastError:=True)>
+        Friend Shared Function NtOpenProcess(
+            <Out> ByRef processHandle As IntPtr,
+            <[In]> desiredAccess As ProcessAccessRights,
+            <[In]> ByRef objectAttributes As ObjectAttributes,
+            <[In], [Optional]> ByRef clientId As ClientId
+        ) As Integer
+        End Function
     End Class
 End Namespace
