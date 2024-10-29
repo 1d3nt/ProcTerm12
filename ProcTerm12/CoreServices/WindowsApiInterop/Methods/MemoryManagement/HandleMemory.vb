@@ -9,14 +9,35 @@
     Friend NotInheritable Class HandleManager
 
         ''' <summary>
-        ''' Closes the token handle if it is not null.
+        ''' Closes the handle if it is not null.
         ''' </summary>
-        ''' <param name="tokenHandle">The handle to be closed.</param>
+        ''' <param name="handle">The handle to be closed.</param>
         ''' <remarks>
-        ''' This method checks if the provided <paramref name="tokenHandle"/> is not equal to <see cref="NativeMethods.NullHandleValue"/>. 
+        ''' This method checks if the provided <paramref name="handle"/> is not equal to <see cref="NativeMethods.NullHandleValue"/>. 
         ''' If it is not equal, the method proceeds to close the handle by calling the <see cref="NativeMethods.CloseHandle"/> method. 
         ''' If the handle is equal to <see cref="NativeMethods.NullHandleValue"/>, which indicates an invalid or uninitialized handle, 
         ''' the method skips the closing operation.
+        ''' </remarks>
+        Friend Shared Sub CloseHandleIfNotNull(handle As IntPtr)
+            Try
+                If Not Equals(handle, NativeMethods.NullHandleValue) Then
+                    NativeMethods.CloseHandle(handle)
+                End If
+            Catch ex As SEHException
+                LogException("SEHException occurred while closing handle", ex)
+            Catch ex As Exception
+                LogException("An unexpected error occurred while closing handle", ex)
+            End Try
+        End Sub
+
+        ''' <summary>
+        ''' Closes the token handle if it is not null and not invalid.
+        ''' </summary>
+        ''' <param name="tokenHandle">The handle to be closed.</param>
+        ''' <remarks>
+        ''' This method checks if the provided <paramref name="tokenHandle"/> is not null and not invalid. 
+        ''' If it is not null and not invalid, the method proceeds to close the handle by calling the <see cref="SafeHandle.Dispose"/> method. 
+        ''' If the handle is null or invalid, the method skips the closing operation.
         ''' </remarks>
         Friend Shared Sub CloseTokenHandleIfNotNull(tokenHandle As SafeTokenHandle)
             Try

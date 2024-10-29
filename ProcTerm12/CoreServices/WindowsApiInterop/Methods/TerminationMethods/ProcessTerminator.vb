@@ -53,6 +53,70 @@
         Friend Async Function DuplicateHandleHandler() As Task Implements IProcessTerminator.DuplicateHandleHandler
             Await Task.Run(AddressOf TerminateProcessUsingDuplicateHandle)
         End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the JobObject method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Friend Async Function JobObjectMethodHandler() As Task Implements IProcessTerminator.JobCreateTerminatorHandler
+            Await Task.Run(AddressOf TerminateProcessUsingJobObject)
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the SetThreadContext method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Friend Async Function SetThreadContextHandler() As Task Implements IProcessTerminator.SetThreadContextHandler
+            Await Task.Run(AddressOf TerminateProcessUsingSetThreadContext)
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the DebugObjectMethods method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Friend Async Function DebugObjectMethodsHandler() As Task Implements IProcessTerminator.DebugObjectMethodsHandler
+            Await Task.Run(AddressOf TerminateProcessUsingDebugObjectMethods)
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the VirtualQueryExNoAccess method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Friend Async Function VirtualQueryExNoAccessHandler() As Task Implements IProcessTerminator.VirtualQueryExNoAccessHandler
+            Await Task.Run(AddressOf TerminateProcessUsingVirtualQueryExNoAccess)
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the WriteProcessMemory method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Friend Async Function WriteProcessMemoryHandler() As Task Implements IProcessTerminator.WriteProcessMemoryHandler
+            Await Task.Run(AddressOf TerminateProcessUsingWriteProcessMemory)
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the VirtualAllocEx method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Friend Async Function VirtualAllocExHandler() As Task Implements IProcessTerminator.VirtualAllocExHandler
+            Await Task.Run(AddressOf TerminateProcessUsingVirtualAllocEx)
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the PsTerminateProcess method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Friend Async Function PsTerminateProcessHandler() As Task Implements IProcessTerminator.PsTerminateProcessHandler
+            Await Task.Run(AddressOf TerminateProcessUsingPsTerminateProcess)
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the PspTerminateThreadByPointer method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Friend Async Function PspTerminateThreadByPointerHandler() As Task Implements IProcessTerminator.PspTerminateThreadByPointerHandler
+            Await Task.Run(AddressOf TerminateProcessUsingPspTerminateThreadByPointer)
+        End Function
 #End Region ' Async Wrappers 
 
 #Region " Synchronous Wrappers "
@@ -64,6 +128,16 @@
         ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
         Private Shared Function NtTerminateProcessWrapper(safeHandle As SafeProcessHandle) As Boolean
             Return NtTerminateProcessMethod.Kill(safeHandle, -1)
+        End Function
+
+        ''' <summary>
+        ''' Wrapper method for TerminateThread.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function TerminateThreadWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return TerminateThread.Kill(safeHandle, userPrompter)
         End Function
 
         ''' <summary>
@@ -85,7 +159,89 @@
             Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
             Return DuplicateHandle.Kill(safeHandle, userPrompter)
         End Function
+
+        ''' <summary>
+        ''' Wrapper method for JobObject.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function JobObjectWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return JobObject.Kill(safeHandle, userPrompter)
+        End Function
+
+        ''' <summary>
+        ''' Wrapper method for SetThreadContext.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function SetThreadContextWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return SetThreadContext.Kill(safeHandle, userPrompter)
+        End Function
+
+        ''' <summary>
+        ''' Wrapper method for DebugObjectMethods.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function DebugObjectMethodsWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return DebugObjectMethods.Kill(safeHandle, userPrompter)
+        End Function
+
+        ''' <summary>
+        ''' Wrapper method for VirtualQueryExNoAccess.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function VirtualQueryExNoAccessWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return VirtualQueryExNoAccess.Kill(safeHandle, userPrompter)
+        End Function
+
+        ''' <summary>
+        ''' Wrapper method for WriteProcessMemory.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function WriteProcessMemoryWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return WriteProcessMemory.Kill(safeHandle, userPrompter)
+        End Function
+
+        ''' <summary>
+        ''' Wrapper method for VirtualAllocEx.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function VirtualAllocExWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return VirtualAllocEx.Kill(safeHandle, userPrompter)
+        End Function
+
+        ''' <summary>
+        ''' Wrapper method for PsTerminateProcess.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function PsTerminateProcessWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return PsTerminateProcess.Kill(safeHandle, userPrompter)
+        End Function
+
+        ''' <summary>
+        ''' Wrapper method for PspTerminateThreadByPointer.Kill to match the expected delegate signature.
+        ''' </summary>
+        ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
+        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        Private Shared Function PspTerminateThreadByPointerWrapper(safeHandle As SafeProcessHandle) As Boolean
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return PspTerminateThreadByPointer.Kill(safeHandle, userPrompter)
+        End Function
 #End Region ' Synchronous Wrappers
+
+#Region " Process Termination Methods "
 
         ''' <summary>
         ''' Attempts to terminate the Notepad process using the NtTerminateProcess method.
@@ -98,7 +254,7 @@
         ''' Attempts to terminate a process by looping through and terminating each of its threads.
         ''' </summary>
         Private Sub TerminateProcessUsingTerminateThread()
-            TerminateProcess(AddressOf TerminateThread.Kill, "TerminateThread")
+            TerminateProcess(AddressOf TerminateThreadWrapper, "TerminateThread")
         End Sub
 
         ''' <summary>
@@ -114,6 +270,63 @@
         Private Sub TerminateProcessUsingDuplicateHandle()
             TerminateProcess(AddressOf DuplicateHandleWrapper, "DuplicateHandle")
         End Sub
+
+        ''' <summary>
+        ''' Attempts to terminate a process using the JobObject method.
+        ''' </summary>
+        Private Sub TerminateProcessUsingJobObject()
+            TerminateProcess(AddressOf JobObjectWrapper, "JobObject")
+        End Sub
+
+        ''' <summary>
+        ''' Attempts to terminate a process using the SetThreadContext method.
+        ''' </summary>
+        Private Sub TerminateProcessUsingSetThreadContext()
+            TerminateProcess(AddressOf SetThreadContextWrapper, "SetThreadContext")
+        End Sub
+
+        ''' <summary>
+        ''' Attempts to terminate a process using the DebugObjectMethods method.
+        ''' </summary>
+        Private Sub TerminateProcessUsingDebugObjectMethods()
+            TerminateProcess(AddressOf DebugObjectMethodsWrapper, "DebugObjectMethods")
+        End Sub
+
+        ''' <summary>
+        ''' Attempts to terminate a process using the VirtualQueryExNoAccess method.
+        ''' </summary>
+        Private Sub TerminateProcessUsingVirtualQueryExNoAccess()
+            TerminateProcess(AddressOf VirtualQueryExNoAccessWrapper, "VirtualQueryExNoAccess")
+        End Sub
+
+        ''' <summary>
+        ''' Attempts to terminate a process using the WriteProcessMemory method.
+        ''' </summary>
+        Private Sub TerminateProcessUsingWriteProcessMemory()
+            TerminateProcess(AddressOf WriteProcessMemoryWrapper, "WriteProcessMemory")
+        End Sub
+
+        ''' <summary>
+        ''' Attempts to terminate a process using the VirtualAllocEx method.
+        ''' </summary>
+        Private Sub TerminateProcessUsingVirtualAllocEx()
+            TerminateProcess(AddressOf VirtualAllocExWrapper, "VirtualAllocEx")
+        End Sub
+
+        ''' <summary>
+        ''' Attempts to terminate a process using the PsTerminateProcess method.
+        ''' </summary>
+        Private Sub TerminateProcessUsingPsTerminateProcess()
+            TerminateProcess(AddressOf PsTerminateProcessWrapper, "PsTerminateProcess")
+        End Sub
+
+        ''' <summary>
+        ''' Attempts to terminate a process using the PspTerminateThreadByPointer method.
+        ''' </summary>
+        Private Sub TerminateProcessUsingPspTerminateThreadByPointer()
+            TerminateProcess(AddressOf PspTerminateThreadByPointerWrapper, "PspTerminateThreadByPointer")
+        End Sub
+#End Region ' Process Termination Methods
 
         ''' <summary>
         ''' Helper method to handle the common logic for terminating a process.

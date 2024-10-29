@@ -33,36 +33,36 @@
         ''' <summary>
         ''' Uses job object methods to terminate the target process.
         ''' </summary>
-        JobObjectMethods
+        JobObjectMethods = 6
 
         ''' <summary>
         ''' Uses a debug object to attach to a process and terminate it.
         ''' </summary>
-        DebugObjectMethods
+        DebugObjectMethods = 7
 
         ''' <summary>
         ''' Modifies memory protections to PAGE_NOACCESS to crash the process.
         ''' </summary>
-        VirtualQueryExNoAccess
+        VirtualQueryExNoAccess = 8
 
         ''' <summary>
         ''' Overwrites memory regions with random data to cause instability.
         ''' </summary>
-        WriteProcessMemory
+        WriteProcessMemory = 9
 
         ''' <summary>
         ''' Continuously allocates memory in the target process until it fails.
         ''' </summary>
-        VirtualAllocEx
+        VirtualAllocEx = 10
 
         ''' <summary>
         ''' Terminates a process using the internal PsTerminateProcess kernel function.
         ''' </summary>
-        PsTerminateProcess
+        PsTerminateProcess = 11
 
         ''' <summary>
         ''' Terminates threads using the non-exported PspTerminateThreadByPointer function.
         ''' </summary>
-        PspTerminateThreadByPointer
+        PspTerminateThreadByPointer = 12
     End Enum
 End Namespace

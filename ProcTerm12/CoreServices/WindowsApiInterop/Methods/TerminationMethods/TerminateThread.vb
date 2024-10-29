@@ -12,6 +12,7 @@
         ''' A handle to the thread to be terminated. The handle must have the 
         ''' <see cref="ProcessAccessRights.Terminate"/> access right.
         ''' </param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>
         ''' Returns <c>True</c> if all threads were successfully terminated; 
         ''' otherwise, returns <c>False</c>.
@@ -27,16 +28,19 @@
         ''' used to maintain consistency across all termination methods, ensuring that 
         ''' all operations utilize <see cref="SafeProcessHandle"/> to manage handles safely.
         ''' </remarks>
-        Friend Shared Function Kill(threadHandle As SafeProcessHandle) As Boolean
+        Friend Shared Function Kill(threadHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             Try
                 ProcessHandleValidator.ValidateProcessHandle(threadHandle)
                 Dim processId = GetProcessIdFromHandle(threadHandle)
                 If processId = 0 Then
+                    userPrompter.Prompt("Failed to get process ID from thread handle.")
                     Return False
                 End If
-                Return TerminateAllThreads(processId)
+                userPrompter.Prompt($"Terminating all threads for process ID {processId}.")
+                Return TerminateAllThreads(processId, userPrompter)
             Catch ex As Exception
-                Throw New Win32Exception(Marshal.GetLastWin32Error())
+                userPrompter.Prompt($"Exception occurred: {ex.Message}")
+                Throw New InvalidOperationException("Failed to terminate the process.", ex)
             Finally
                 threadHandle.Dispose()
             End Try
@@ -55,14 +59,16 @@
         ''' Terminates all threads of the specified process.
         ''' </summary>
         ''' <param name="processId">The ID of the process whose threads are to be terminated.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>Returns <c>True</c> if all threads were successfully terminated; otherwise, returns <c>False</c>.</returns>
-        Private Shared Function TerminateAllThreads(processId As UInteger) As Boolean
+        Private Shared Function TerminateAllThreads(processId As UInteger, userPrompter As IUserPrompter) As Boolean
             Using snapshotHandle As New SafeProcessHandle(NativeMethods.CreateToolhelp32Snapshot(NativeMethods.Th32CsSnapThread, processId), True)
                 Dim entrySize As New ThreadEntry32 With {.dwSize = CUInt(Marshal.SizeOf(GetType(ThreadEntry32)))}
                 If NativeMethods.Thread32First(snapshotHandle.DangerousGetHandle(), entrySize) Then
                     Do
                         If entrySize.th32OwnerProcessID = processId Then
-                            If Not TerminateThreadById(entrySize.th32ThreadID) Then
+                            If Not TerminateThreadById(entrySize.th32ThreadID, userPrompter) Then
+                                userPrompter.Prompt($"Failed to terminate thread ID {entrySize.th32ThreadID}.")
                                 Return False
                             End If
                         End If
@@ -76,11 +82,17 @@
         ''' Terminates the thread with the specified thread ID.
         ''' </summary>
         ''' <param name="threadId">The ID of the thread to be terminated.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>Returns <c>True</c> if the thread was successfully terminated; otherwise, returns <c>False</c>.</returns>
-        Private Shared Function TerminateThreadById(threadId As UInteger) As Boolean
+        Private Shared Function TerminateThreadById(threadId As UInteger, userPrompter As IUserPrompter) As Boolean
             Using currentThreadHandle As New SafeProcessHandle(NativeMethods.OpenThread(NativeMethods.ThreadTerminate, False, threadId), True)
                 ProcessHandleValidator.ValidateProcessHandle(currentThreadHandle)
-                Return NativeMethods.TerminateThread(currentThreadHandle.DangerousGetHandle(), 0)
+                If NativeMethods.TerminateThread(currentThreadHandle.DangerousGetHandle(), 0) Then
+                    userPrompter.Prompt($"Thread ID {threadId} terminated successfully.")
+                    Return True
+                Else
+                    Return False
+                End If
             End Using
         End Function
     End Class

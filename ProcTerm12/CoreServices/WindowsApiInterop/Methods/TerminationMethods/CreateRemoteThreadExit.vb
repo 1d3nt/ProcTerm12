@@ -75,7 +75,6 @@
             If Equals(exitProcessAddress, NativeMethods.NullHandleValue) Then
                 userPrompter.Prompt("Failed to get address of ExitProcess. Last error: " & Marshal.GetLastWin32Error())
             End If
-            Debug.WriteLine(exitProcessAddress.ToString())
             Return exitProcessAddress
         End Function
 

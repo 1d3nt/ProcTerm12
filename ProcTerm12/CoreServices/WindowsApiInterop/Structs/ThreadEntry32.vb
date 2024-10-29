@@ -21,6 +21,21 @@
     ''' 
     ''' For additional details on the <see cref="ThreadEntry32"/> structure, refer to:
     ''' <see href="https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/ns-tlhelp32-threadentry32">THREADENTRY32 Structure</see>.
+    ''' 
+    ''' <example>
+    ''' In C++:
+    ''' <code>
+    ''' typedef struct tagTHREADENTRY32 {
+    '''     DWORD dwSize;
+    '''     DWORD cntUsage;
+    '''     DWORD th32ThreadID;
+    '''     DWORD th32OwnerProcessID;
+    '''     LONG  tpBasePri;
+    '''     LONG  tpDeltaPri;
+    '''     DWORD dwFlags;
+    ''' } THREADENTRY32;
+    ''' </code>
+    ''' </example>
     ''' </remarks>
     <StructLayout(LayoutKind.Sequential)>
     Friend Class ThreadEntry32

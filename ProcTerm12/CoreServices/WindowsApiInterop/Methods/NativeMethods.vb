@@ -754,5 +754,159 @@
            <Out> ByRef lpExitCode As UInteger
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
+
+        ''' <summary>
+        ''' Creates or opens a job object with specified security attributes and name.
+        ''' This function is commonly used to limit the resources that a process and its child processes can consume.
+        ''' </summary>
+        ''' <param name="lpJobAttributes">
+        ''' A pointer to a <c>SECURITY_ATTRIBUTES</c> structure that specifies the security descriptor for the job object 
+        ''' and determines whether child processes can inherit the returned handle. If lpJobAttributes is NULL, 
+        ''' the job object gets a default security descriptor, and the handle cannot be inherited. 
+        ''' The ACLs in the default security descriptor for a job object come from the primary or impersonation token of the creator.
+        ''' This parameter is passed with the <c>[In, Optional]</c> attribute.
+        ''' </param>
+        ''' <param name="lpName">
+        ''' The name of the job, limited to MAX_PATH characters. Name comparison is case-sensitive.
+        ''' This parameter is passed with the <c>[In, Optional]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is a handle to the job object with JOB_OBJECT_ALL_ACCESS rights.
+        ''' If the function fails, the return value is NULL.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createjobobjecta">CreateJobObject Documentation</see>.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' HANDLE CreateJobObjectA(
+        '''   [in, optional] LPSECURITY_ATTRIBUTES lpJobAttributes,
+        '''   [in, optional] LPCSTR lpName
+        ''' );
+        ''' </code>
+        ''' 
+        ''' Although the default CharSet is Auto, which resolves to Unicode on Windows, 
+        ''' we explicitly declare CharSet.Unicode here for clarity.
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Unicode, SetLastError:=True)>
+        Friend Shared Function CreateJobObjectA(
+            <[In], [Optional]> lpJobAttributes As IntPtr,
+            <[In], [Optional]> lpName As String
+        ) As IntPtr
+        End Function
+
+        ''' <summary>
+        ''' Assigns a process to an existing job object.
+        ''' </summary>
+        ''' <param name="hJob">
+        ''' A handle to the job object to which the process will be associated. The CreateJobObject or OpenJobObject
+        ''' function returns this handle. The handle must have the JOB_OBJECT_ASSIGN_PROCESS access right. 
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="hProcess">
+        ''' A handle to the process to associate with the job object. The handle must have the PROCESS_SET_QUOTA and
+        ''' PROCESS_TERMINATE access rights. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject">AssignProcessToJobObject Documentation</see>.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' BOOL AssignProcessToJobObject(
+        '''   [in] HANDLE hJob,
+        '''   [in] HANDLE hProcess
+        ''' );
+        ''' </code>
+        ''' 
+        ''' Although the default CharSet is Auto, which resolves to Unicode on Windows, 
+        ''' we explicitly declare CharSet.Unicode here for clarity.
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Unicode, SetLastError:=True)>
+        Friend Shared Function AssignProcessToJobObject(
+            <[In]> hJob As IntPtr,
+            <[In]> hProcess As IntPtr
+        ) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
+
+        ''' <summary>
+        ''' Terminates all processes currently associated with the job. If the job is nested, this function
+        ''' terminates all processes currently associated with the job and all of its child jobs in the hierarchy.
+        ''' </summary>
+        ''' <param name="hJob">
+        ''' A handle to the job whose processes will be terminated. The CreateJobObject or OpenJobObject function returns this handle.
+        ''' This handle must have the JOB_OBJECT_TERMINATE access right. 
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="uExitCode">
+        ''' The exit code to be used by all processes and threads in the job object. 
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-terminatejobobject">TerminateJobObject Documentation</see>.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' BOOL TerminateJobObject(
+        '''   [in] HANDLE hJob,
+        '''   [in] UINT uExitCode
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function TerminateJobObject(
+            <[In]> hJob As IntPtr,
+            <[In]> uExitCode As UInteger
+        ) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
+
+        ''' <summary>
+        ''' Sets limits for a job object.
+        ''' </summary>
+        ''' <param name="hJob">
+        ''' A handle to the job whose limits are being set. The CreateJobObject or OpenJobObject function returns this handle.
+        ''' The handle must have the JOB_OBJECT_SET_ATTRIBUTES access right. For more information, see Job Object Security
+        ''' and Access Rights. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="infoType">
+        ''' The information class for the limits to be set. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="lpJobObjectInfo">
+        ''' The limits or job state to be set for the job. The format of this data depends on the value of JobObjectInfoClass.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="cbJobObjectInfoLength">
+        ''' The size of the job information being set, in bytes. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-setinformationjobobject">SetInformationJobObject Documentation</see>.
+        ''' Although the default CharSet is Auto, which resolves to Unicode on Windows, 
+        ''' we explicitly declare CharSet.Unicode here for clarity.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' BOOL SetInformationJobObject(
+        ''' [in] HANDLE hJob,
+        ''' [in] JobObjectInformationClass infoType,
+        ''' [in] LPVOID lpJobObjectInfo,
+        ''' [in] DWORD cbJobObjectInfoLength
+        ''' );
+        ''' </code>
+        ''' 
+        ''' Although the default CharSet is Auto, which resolves to Unicode on Windows, 
+        ''' we explicitly declare CharSet.Unicode here for clarity.
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Unicode, SetLastError:=True)>
+        Friend Shared Function SetInformationJobObject(
+            <[In]> hJob As IntPtr,
+            <[In]> infoType As JobObjectInformationClass,
+            <[In]> lpJobObjectInfo As IntPtr,
+            <[In]> cbJobObjectInfoLength As UInteger
+        ) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
     End Class
 End Namespace

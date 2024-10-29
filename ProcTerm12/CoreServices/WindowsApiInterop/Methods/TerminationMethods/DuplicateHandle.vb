@@ -47,13 +47,13 @@
             Dim isSuccess As Boolean
             Try
                 If Not Equals(handle, NativeMethods.NullHandleValue) Then
-                    isSuccess = CloseAllHandles(handle)
-                    Dim waitSuccess As Boolean = WaitForProcessTermination(handle)
+                    isSuccess = CloseAllHandles(handle, userPrompter)
+                    Dim waitSuccess As Boolean = WaitForProcessTermination(handle, userPrompter)
                     isSuccess = isSuccess AndAlso waitSuccess
                 End If
             Finally
                 If Not Equals(handle, NativeMethods.NullHandleValue) Then
-                    NativeMethods.CloseHandle(handle)
+                    HandleManager.CloseHandleIfNotNull(handle)
                 End If
             End Try
             If Not isSuccess AndAlso Not IfAllElseFailsFinalProcessIsAliveCheck(processId, userPrompter) Then
@@ -66,14 +66,15 @@
         ''' Closes all handles associated with the process.
         ''' </summary>
         ''' <param name="handle">The handle of the process.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns><c>True</c> if all handles were closed successfully; otherwise, <c>False</c>.</returns>
-        Private Shared Function CloseAllHandles(handle As IntPtr) As Boolean
+        Private Shared Function CloseAllHandles(handle As IntPtr, userPrompter As IUserPrompter) As Boolean
             Dim isSuccess = True
             For i = 0 To MaxHandleValue Step 4
                 If Not CloseHandle(handle, CType(i, IntPtr)) Then
                     isSuccess = False
                 Else
-                    Debug.WriteLine($"Closed handle 0x{i:X4}")
+                    userPrompter.Prompt($"Closed handle 0x{i:X4}")
                 End If
             Next
             Return isSuccess
@@ -86,6 +87,7 @@
         ''' The handle of the process to wait on. This parameter must be a valid handle obtained from functions like 
         ''' <c>CreateProcess</c> or <c>OpenProcess</c>, and it should have the appropriate access rights for waiting.
         ''' </param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>
         ''' <c>True</c> if the process has exited successfully; otherwise, <c>False</c>. If the process is still running at 
         ''' the end of the wait period, this method will return <c>False</c>.
@@ -104,15 +106,17 @@
         ''' For more details on process termination and exit codes, refer to the following:
         ''' <see href="https://learn.microsoft.com/en-us/windows/desktop/api/processthreads/nf-processthreads-getexitcodeprocess">GetExitCodeProcess documentation</see>.
         ''' </remarks>
-        Private Shared Function WaitForProcessTermination(handle As IntPtr) As Boolean
+        Private Shared Function WaitForProcessTermination(handle As IntPtr, userPrompter As IUserPrompter) As Boolean
             Dim timeout = UnsafeNativeMethods.Infinite
             Dim waitResult As Integer = UnsafeNativeMethods.NtWaitForSingleObject(handle, False, timeout)
             If waitResult = NativeMethods.WaitObject0 Then
                 Dim exitCode As UInteger
                 If NativeMethods.GetExitCodeProcess(handle, exitCode) AndAlso exitCode <> NativeMethods.StillActive Then
+                    userPrompter.Prompt("Process has exited successfully.")
                     Return True
                 End If
             End If
+            userPrompter.Prompt("Process is still running.")
             Return False
         End Function
 

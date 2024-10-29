@@ -29,5 +29,53 @@
         ''' </summary>
         ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Function DuplicateHandleHandler() As Task
+
+        ''' <summary>
+        ''' Handles the termination of a process by creating a job object and assigning the process to it.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Function JobCreateTerminatorHandler() As Task
+
+        ''' <summary>
+        ''' Handles the termination of a process using the SetThreadContext method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Function SetThreadContextHandler() As Task
+
+        ''' <summary>
+        ''' Handles the termination of a process using the DebugObjectMethods method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Function DebugObjectMethodsHandler() As Task
+
+        ''' <summary>
+        ''' Handles the termination of a process using the VirtualQueryExNoAccess method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Function VirtualQueryExNoAccessHandler() As Task
+
+        ''' <summary>
+        ''' Handles the termination of a process using the WriteProcessMemory method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Function WriteProcessMemoryHandler() As Task
+
+        ''' <summary>
+        ''' Handles the termination of a process using the VirtualAllocEx method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Function VirtualAllocExHandler() As Task
+
+        ''' <summary>
+        ''' Handles the termination of a process using the PsTerminateProcess method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Function PsTerminateProcessHandler() As Task
+
+        ''' <summary>
+        ''' Handles the termination of a process using the PspTerminateThreadByPointer method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Function PspTerminateThreadByPointerHandler() As Task
     End Interface
 End Namespace

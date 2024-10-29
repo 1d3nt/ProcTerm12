@@ -69,22 +69,19 @@
         ''' </item>
         ''' </list>
         Private ReadOnly _terminationMethodsActions As New Dictionary(Of TerminationMethods, Func(Of Task)) From {
-            {TerminationMethods.NtTerminateProcess, AddressOf NtTerminateProcessHandler},
-            {TerminationMethods.CreateRemoteThreadExitProcess, AddressOf CreateRemoteThreadExitProcessHandler},
-            {TerminationMethods.TerminateThread, AddressOf TerminateThreadHandler},
-            {TerminationMethods.DuplicateHandle, AddressOf DuplicateHandleHandler}
-        }
-        ',
-
-        '{TerminationMethods.SetThreadContext, AddressOf SetThreadContextHandler},
-        '
-        '{TerminationMethods.JobObjectMethods, AddressOf JobObjectMethodsHandler},
-        '{TerminationMethods.DebugObjectMethods, AddressOf DebugObjectMethodsHandler},
-        '{TerminationMethods.VirtualQueryExNoAccess, AddressOf VirtualQueryExNoAccessHandler},
-        '{TerminationMethods.WriteProcessMemory, AddressOf WriteProcessMemoryHandler},
-        '{TerminationMethods.VirtualAllocEx, AddressOf VirtualAllocExHandler},
-        '{TerminationMethods.PsTerminateProcess, AddressOf PsTerminateProcessHandler},
-        '{TerminationMethods.PspTerminateThreadByPointer, AddressOf PspTerminateThreadByPointerHandler}
+                {TerminationMethods.NtTerminateProcess, AddressOf NtTerminateProcessHandler},
+                {TerminationMethods.CreateRemoteThreadExitProcess, AddressOf CreateRemoteThreadExitProcessHandler},
+                {TerminationMethods.TerminateThread, AddressOf TerminateThreadHandler},
+                {TerminationMethods.DuplicateHandle, AddressOf DuplicateHandleHandler},
+                {TerminationMethods.JobObjectMethods, AddressOf JobObjectMethodHandler},
+                {TerminationMethods.SetThreadContext, AddressOf SetThreadContextHandler},
+                {TerminationMethods.DebugObjectMethods, AddressOf DebugObjectMethodsHandler},
+                {TerminationMethods.VirtualQueryExNoAccess, AddressOf VirtualQueryExNoAccessHandler},
+                {TerminationMethods.WriteProcessMemory, AddressOf WriteProcessMemoryHandler},
+                {TerminationMethods.VirtualAllocEx, AddressOf VirtualAllocExHandler},
+                {TerminationMethods.PsTerminateProcess, AddressOf PsTerminateProcessHandler},
+                {TerminationMethods.PspTerminateThreadByPointer, AddressOf PspTerminateThreadByPointerHandler}
+            }
 
         ''' <summary>
         ''' The user prompter used for displaying messages to the user.
@@ -245,6 +242,70 @@
         ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Private Async Function DuplicateHandleHandler() As Task
             Await _processTerminator.DuplicateHandleHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process by creating a job object and assigning the process to it.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function JobObjectMethodHandler() As Task
+            Await _processTerminator.JobCreateTerminatorHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the SetThreadContext method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function SetThreadContextHandler() As Task
+            Await _processTerminator.SetThreadContextHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the DebugObjectMethods method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function DebugObjectMethodsHandler() As Task
+            Await _processTerminator.DebugObjectMethodsHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the VirtualQueryExNoAccess method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function VirtualQueryExNoAccessHandler() As Task
+            Await _processTerminator.VirtualQueryExNoAccessHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the WriteProcessMemory method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function WriteProcessMemoryHandler() As Task
+            Await _processTerminator.WriteProcessMemoryHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the VirtualAllocEx method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function VirtualAllocExHandler() As Task
+            Await _processTerminator.VirtualAllocExHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the PsTerminateProcess method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function PsTerminateProcessHandler() As Task
+            Await _processTerminator.PsTerminateProcessHandler()
+        End Function
+
+        ''' <summary>
+        ''' Handles the termination of a process using the PspTerminateThreadByPointer method.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Private Async Function PspTerminateThreadByPointerHandler() As Task
+            Await _processTerminator.PspTerminateThreadByPointerHandler()
         End Function
     End Class
 End Namespace
