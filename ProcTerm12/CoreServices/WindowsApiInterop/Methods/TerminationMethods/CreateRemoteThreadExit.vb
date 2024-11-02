@@ -68,12 +68,12 @@
         Private Shared Function GetExitProcessAddress(userPrompter As IUserPrompter) As IntPtr
             Dim hModule As IntPtr = NativeMethods.GetModuleHandle("kernel32.dll")
             If Equals(hModule, NativeMethods.NullHandleValue) Then
-                userPrompter.Prompt("Failed to get module handle for kernel32.dll. Last error: " & Marshal.GetLastWin32Error())
+                userPrompter.Prompt("Failed to get module handle for kernel32.dll. Last error: " & Win32Error.GetLastPInvokeError())
                 Return NativeMethods.NullHandleValue
             End If
             Dim exitProcessAddress As IntPtr = NativeMethods.GetProcAddress(hModule, "ExitProcess")
             If Equals(exitProcessAddress, NativeMethods.NullHandleValue) Then
-                userPrompter.Prompt("Failed to get address of ExitProcess. Last error: " & Marshal.GetLastWin32Error())
+                userPrompter.Prompt("Failed to get address of ExitProcess. Last error: " & Win32Error.GetLastPInvokeError())
             End If
             Return exitProcessAddress
         End Function
@@ -88,7 +88,7 @@
         Private Shared Function AllocateMemory(processHandle As SafeProcessHandle, exitProcessAddress As IntPtr, userPrompter As IUserPrompter) As IntPtr
             Dim allocatedMemory As IntPtr = NativeMethods.VirtualAllocEx(processHandle.DangerousGetHandle(), IntPtr.Zero, New UIntPtr(CUInt(Marshal.SizeOf(exitProcessAddress))), NativeMethods.MemCommit Or NativeMethods.MemReserve, NativeMethods.PageExecuteReadWrite)
             If Equals(allocatedMemory, NativeMethods.NullHandleValue) Then
-                userPrompter.Prompt("Failed to allocate memory in target process. Last error: " & Marshal.GetLastWin32Error())
+                userPrompter.Prompt("Failed to allocate memory in target process. Last error: " & Win32Error.GetLastPInvokeError())
             End If
             Return allocatedMemory
         End Function
@@ -107,7 +107,7 @@
             Dim addressIntPtr = New IntPtr(BitConverter.ToInt64(addressBytes, 0))
             Dim success As Boolean = NativeMethods.WriteProcessMemory(processHandle.DangerousGetHandle(), allocatedMemory, addressIntPtr, CType(addressBytes.Length, UInteger), bytesWritten)
             If Not success Then
-                userPrompter.Prompt("Failed to write memory in target process. Last error: " & Marshal.GetLastWin32Error())
+                userPrompter.Prompt("Failed to write memory in target process. Last error: " & Win32Error.GetLastPInvokeError())
                 Return False
             End If
             Return True
@@ -123,17 +123,18 @@
         Private Shared Function CreateAndWaitForRemoteThread(processHandle As SafeProcessHandle, allocatedMemory As IntPtr, userPrompter As IUserPrompter) As Boolean
             Using threadHandle As SafeThreadHandle = SafeThreadHandle.FromHandle(NativeMethods.CreateRemoteThread(processHandle.DangerousGetHandle(), IntPtr.Zero, 0, allocatedMemory, IntPtr.Zero, 0, 0))
                 If threadHandle Is Nothing OrElse threadHandle.IsInvalid Then
-                    userPrompter.Prompt("Failed to create remote thread in target process. Last error: " & Marshal.GetLastWin32Error())
+                    userPrompter.Prompt("Failed to create remote thread in target process. Last error: " & Win32Error.GetLastPInvokeError())
                     Return False
                 End If
                 Dim waitResult As UInteger = NativeMethods.WaitForSingleObject(threadHandle.DangerousGetHandle(), NativeMethods.MemInfinite)
                 If waitResult <> 0 Then
-                    userPrompter.Prompt("Failed to wait for remote thread to complete. Last error: " & Marshal.GetLastWin32Error())
+                    userPrompter.Prompt("Failed to wait for remote thread to complete. Last error: " & Win32Error.GetLastPInvokeError())
                     Return False
                 End If
             End Using
             Return True
         End Function
+
 
         ''' <summary>
         ''' Frees allocated memory in the specified process and handles potential race conditions 
@@ -155,7 +156,7 @@
         Private Shared Function FreeAllocatedMemory(processHandle As SafeProcessHandle, allocatedMemory As IntPtr, processId As UInteger, userPrompter As IUserPrompter) As Boolean
             Dim success As Boolean = NativeMethods.VirtualFreeEx(processHandle.DangerousGetHandle(), allocatedMemory, UIntPtr.Zero, NativeMethods.MemRelease)
             If Not success Then
-                Dim lastError As Integer = Marshal.GetLastWin32Error()
+                Dim lastError As Integer = Win32Error.GetLastPInvokeErrorCode()
                 If lastError <> InvalidHandle AndAlso lastError <> AccessDenied Then
                     userPrompter.Prompt("Failed to free allocated memory in target process. Last error: " & lastError)
                     If CheckIfProcessIsRunning(processId, userPrompter, "Notepad process is still running.") Then

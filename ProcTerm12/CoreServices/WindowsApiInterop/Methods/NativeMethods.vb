@@ -19,14 +19,6 @@
 #Region " Comnstants "
 
         ''' <summary>
-        ''' Represents a null handle value used in P/Invoke calls.
-        ''' </summary>
-        ''' <remarks>
-        ''' This field is used to represent a null handle (<see cref="IntPtr.Zero"/>) in P/Invoke calls to unmanaged code.
-        ''' </remarks>
-        Friend Shared ReadOnly NullHandleValue As IntPtr = IntPtr.Zero
-
-        ''' <summary>
         ''' Represents the success status code returned by wait functions, such as <see cref="WaitForSingleObject"/>, 
         ''' when a specified object is in the signaled state.
         ''' </summary>
@@ -95,7 +87,89 @@
         ''' operations where an "unbounded" or "maximum" size needs to be indicated, as with <c>MemInfinite</c>.
         ''' </remarks>
         Friend Const MemInfinite As UInteger = &HFFFFFFFFUI
+
+        ''' <summary>
+        ''' Specifies that the snapshot created by CreateToolhelp32Snapshot will include all modules 
+        ''' in the specified process.
+        ''' </summary>
+        ''' <remarks>
+        ''' This flag allows CreateToolhelp32Snapshot to capture the loaded modules within the process.
+        ''' For further details, see:
+        ''' https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot
+        ''' Example C++ representation:
+        ''' <code>
+        ''' #define TH32CS_SNAPMODULE 0x00000008
+        ''' </code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
+        ''' </remarks>
+        <UsedImplicitly>
+        Friend Const Th32CsSnapModule As UInteger = &H8
+
+        ''' <summary>
+        ''' Specifies that the snapshot created by CreateToolhelp32Snapshot will include all modules 
+        ''' in the specified process and is specific to 32-bit modules.
+        ''' </summary>
+        ''' <remarks>
+        ''' This flag allows CreateToolhelp32Snapshot to capture the loaded 32-bit modules within the process.
+        ''' For further details, see:
+        ''' https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot
+        ''' Example C++ representation:
+        ''' <code>
+        ''' #define TH32CS_SNAPMODULE32 0x00000010
+        ''' </code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
+        ''' </remarks>
+        <UsedImplicitly>
+        Friend Const Th32CsSnapModule32 As UInteger = &H10
+
+        ''' <summary>
+        ''' Specifies that the snapshot created by CreateToolhelp32Snapshot will include all processes and modules.
+        ''' </summary>
+        ''' <remarks>
+        ''' This constant is used to indicate that both regular and 32-bit module snapshots should be taken.
+        ''' For further details, see:
+        ''' https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot
+        ''' Example C++ representation:
+        ''' <code>
+        ''' #define TH32CS_SNAPALL 0x00000018
+        ''' </code>
+        ''' </remarks>
+        Friend Const Th32CsSnapAll As UInteger = &H18
+
+        ''' <summary>
+        ''' Disables all access to the committed region of pages.
+        ''' </summary>
+        ''' <remarks>
+        ''' An attempt to read from, write to, or execute the committed region results in an access violation.
+        ''' This flag is not supported by the <c>CreateFileMapping</c> function.
+        ''' </remarks>
+        Friend Const PageNoAccess As UInteger = &H1
 #End Region ' Constants
+
+        ''' <summary>
+        ''' Represents a null handle value used in P/Invoke calls.
+        ''' </summary>
+        ''' <remarks>
+        ''' This field is used to represent a null handle (<see cref="IntPtr.Zero"/>) in P/Invoke calls to unmanaged code.
+        ''' </remarks>
+        Friend Shared ReadOnly NullHandleValue As IntPtr = IntPtr.Zero
+
+        ''' <summary>
+        ''' Represents an invalid handle value, commonly used to indicate that a handle operation failed.
+        ''' </summary>
+        ''' <remarks>
+        ''' Used to check if handle-creation functions like CreateFile, CreateToolhelp32Snapshot, or other handle-returning 
+        ''' functions failed. An INVALID_HANDLE_VALUE return typically indicates an error occurred.
+        ''' For further details, see:
+        ''' https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle
+        ''' Example C++ representation:
+        ''' <code>
+        ''' #define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
+        ''' </code>
+        ''' </remarks>
+        Friend Shared ReadOnly InvalidHandleValue As New IntPtr(-1)
 
         ''' <summary>
         ''' Closes an open object handle.
@@ -908,6 +982,181 @@
             <[In]> infoType As JobObjectInformationClass,
             <[In]> lpJobObjectInfo As IntPtr,
             <[In]> cbJobObjectInfoLength As UInteger
+        ) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
+
+        ''' <summary>
+        ''' Retrieves information about a range of pages in the virtual memory of a specified process.
+        ''' </summary>
+        ''' <param name="hProcess">
+        ''' A handle to the process whose virtual memory is being queried. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="lpAddress">
+        ''' A pointer to the starting address of the region of memory to query. This parameter is optional and is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="lpBuffer">
+        ''' A pointer to a <see cref="MemoryBasicInformation"/> structure that receives information about the specified region of pages. This parameter is passed with the <c>[Out]</c> attribute.
+        ''' </param>
+        ''' <param name="dwLength">
+        ''' The size of the <see cref="MemoryBasicInformation"/> structure, in bytes. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' Returns the size of the region of pages that was queried, in bytes. If the function fails, the return value is zero.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualqueryex">VirtualQueryEx documentation</see> for more information.
+        ''' 
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' SIZE_T VirtualQueryEx(
+        '''   [in]           HANDLE                    hProcess,
+        '''   [in, optional] LPCVOID                   lpAddress,
+        '''   [out]          PMEMORY_BASIC_INFORMATION lpBuffer,
+        '''   [in]           SIZE_T                    dwLength
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function VirtualQueryEx(
+            <[In]> hProcess As IntPtr,
+            <[In]> lpAddress As IntPtr,
+            <Out> lpBuffer As MemoryBasicInformation,
+            <[In]> dwLength As UInteger
+        ) As UInteger
+        End Function
+
+        ''' <summary>
+        ''' Changes the protection on a region of committed pages in the virtual memory of a specified process.
+        ''' </summary>
+        ''' <param name="hProcess">
+        ''' A handle to the process whose memory protection is to be changed. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="lpAddress">
+        ''' A pointer to the starting address of the region of memory whose protection is to be changed. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="dwSize">
+        ''' The size of the region of memory, in bytes, whose protection is to be changed. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="flNewProtect">
+        ''' The memory protection to apply to the region of pages. This parameter is passed with the <c>[In]</c> attribute and is of type <see cref="MemoryProtection"/>.
+        ''' </param>
+        ''' <param name="lpflOldProtect">
+        ''' A pointer to a variable that receives the previous protection of the first page in the specified region. This parameter is passed with the <c>[Out]</c> attribute and is of type <see cref="MemoryProtection"/>.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotectex">VirtualProtectEx documentation</see> for more information.
+        ''' 
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' BOOL VirtualProtectEx(
+        '''   [in]  HANDLE hProcess,
+        '''   [in]  LPVOID lpAddress,
+        '''   [in]  SIZE_T dwSize,
+        '''   [in]  DWORD  flNewProtect,
+        '''   [out] PDWORD lpflOldProtect
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function VirtualProtectEx(
+            <[In]> hProcess As IntPtr,
+            <[In]> lpAddress As IntPtr,
+            <[In]> dwSize As UInteger,
+            <[In]> flNewProtect As MemoryProtection,
+            <Out> ByRef lpflOldProtect As MemoryProtection
+        ) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
+
+        ''' <summary>
+        ''' Retrieves information about the first module in a snapshot.
+        ''' </summary>
+        ''' <param name="hSnapshot">
+        ''' A handle to the snapshot of the modules. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="lpme">
+        ''' A reference to a <see cref="ModuleEntry32"/> structure that will receive information about the module. 
+        ''' This parameter should not be marked with the <c>[Out]</c> attribute. If marked incorrectly as <c>[Out]</c>, 
+        ''' the function will fail to operate correctly and will not return the expected results. 
+        ''' This is critical because the structure needs to be filled with data from the API call, and marking it incorrectly 
+        ''' can disrupt the expected behavior.
+        ''' </param>
+        ''' <remarks>
+        ''' <para>
+        ''' For this function to work correctly, the <c>CharSet</c> must be set to <c>CharSet.Unicode</c>. This is essential because the Windows API function it calls, <c>Module32FirstW</c>,
+        ''' is specifically the Unicode version. If the <c>CharSet</c> is not set to Unicode, it will default to ANSI, which can lead to unexpected behavior or failure to retrieve module information.
+        ''' </para>
+        ''' <para>
+        ''' The <c>EntryPoint</c> parameter is set to <c>Module32FirstW</c> to indicate that we are using the Unicode version of this function. This is crucial for ensuring that string data is handled
+        ''' correctly when retrieving module names and paths, which may contain Unicode characters.
+        ''' </para>
+        ''' <para>
+        ''' The <c>lpme</c> parameter is declared as a <c>ByRef</c> reference to a <see cref="ModuleEntry32"/> structure. It is important that this parameter is marked with the <c>[Out]</c> attribute.
+        ''' If marked incorrectly, such as using <c>[In]</c>, the function may break or fail to provide the expected output. This is because the structure needs to be populated with data from the API call,
+        ''' which requires it to be treated as an output parameter.
+        ''' 
+        ''' The <c>lpme</c> parameter should not be marked with the <c>[Out]</c> attribute. If it is incorrectly marked as <c>[Out]</c>, 
+        ''' the function will fail to operate correctly and will not return the expected results. 
+        ''' This is critical because the structure needs to be filled with data from the API call, and marking it incorrectly can disrupt the expected behavior.
+        ''' </para>
+        ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-module32firstw">Module32FirstW documentation</see> for more information.
+        ''' </remarks>
+
+
+        <DllImport(ExternDll.Kernel32, SetLastError:=True, CharSet:=CharSet.Unicode, EntryPoint:="Module32FirstW")>
+        Friend Shared Function Module32First(
+            <[In]> hSnapshot As IntPtr,
+             ByRef lpme As ModuleEntry32
+        ) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
+
+        ''' <summary>
+        ''' Retrieves information about the next module in a module snapshot.
+        ''' </summary>
+        ''' <param name="hSnapshot">
+        ''' A handle to the snapshot of the modules. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="lpme">
+        ''' A reference to a <see cref="ModuleEntry32"/> structure that receives information about the module. 
+        ''' This parameter is passed with the <c>[Out]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is nonzero. If the function fails or there are no more modules, the return value is zero.
+        ''' </returns>
+        ''' <remarks>
+        ''' <para>
+        ''' For this function to work correctly, the <c>CharSet</c> must be set to <c>CharSet.Unicode</c>. This is essential because the Windows API function it calls, <c>Module32NextW</c>,
+        ''' is specifically the Unicode version. If the <c>CharSet</c> is not set to Unicode, it will default to ANSI, which can lead to unexpected behavior or failure to retrieve module information.
+        ''' </para>
+        ''' <para>
+        ''' The <c>EntryPoint</c> parameter is set to <c>Module32NextW</c> to indicate that we are using the Unicode version of this function. This is crucial for ensuring that string data is handled
+        ''' correctly when retrieving module names and paths, which may contain Unicode characters.
+        ''' </para>
+        ''' <para>
+        ''' The <c>lpme</c> parameter is declared as a <c>ByRef</c> reference to a <see cref="ModuleEntry32"/> structure. It is important that this parameter is marked with the <c>[Out]</c> attribute.
+        ''' If marked incorrectly, such as using <c>[In]</c>, the function may break or fail to provide the expected output. This is because the structure needs to be populated with data from the API call,
+        ''' which requires it to be treated as an output parameter.
+        ''' 
+        ''' The <c>lpme</c> parameter should not be marked with the <c>[Out]</c> attribute. If it is incorrectly marked as <c>[Out]</c>, 
+        ''' the function will fail to operate correctly and will not return the expected results. 
+        ''' This is critical because the structure needs to be filled with data from the API call, and marking it incorrectly can disrupt the expected behavior.
+        ''' </para>
+        ''' For more details, refer to the <see href="https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-module32nextw">Module32NextW documentation</see> for more information.
+        ''' 
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' BOOL Module32Next(
+        '''   [in]  HANDLE           hSnapshot,
+        '''   [out] LPMODULEENTRY32W lpme
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Unicode, EntryPoint:="Module32NextW", SetLastError:=True)>
+        Friend Shared Function Module32Next(
+            <[In]> hSnapshot As IntPtr,
+            ByRef lpme As ModuleEntry32
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
     End Class

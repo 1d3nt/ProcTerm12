@@ -49,7 +49,7 @@
         Friend Shared Function GetProcessId(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As UInteger
             Dim processId As UInteger = NativeMethods.GetProcessId(processHandle.DangerousGetHandle())
             If processId = 0 Then
-                userPrompter.Prompt("Failed to get process ID. Last error: " & Marshal.GetLastWin32Error())
+                userPrompter.Prompt("Failed to get process ID. Last error: " & Win32Error.GetLastPInvokeError())
             End If
             Return processId
         End Function

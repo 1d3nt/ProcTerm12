@@ -1,21 +1,21 @@
 ﻿Namespace CoreServices.WindowsApiInterop.Methods.MemoryManagement
 
     ''' <summary>
-    ''' A SafeHandle wrapper for a token handle to ensure proper resource management.
+    ''' A SafeHandle wrapper for a debug object handle to ensure proper resource management.
     ''' </summary>
     <SecurityCritical>
-    Public NotInheritable Class SafeTokenHandle
+    Public NotInheritable Class SafeDebugHandle
         Inherits SafeHandleZeroOrMinusOneIsInvalid
 
         ''' <summary>
-        ''' Initializes a new instance of the <see cref="SafeTokenHandle"/> class.
+        ''' Initializes a new instance of the <see cref="SafeDebugHandle"/> class.
         ''' </summary>
         Public Sub New()
-            MyBase.New(True) 
+            MyBase.New(True)
         End Sub
 
         ''' <summary>
-        ''' Initializes a new instance of the <see cref="SafeTokenHandle"/> class with an existing handle.
+        ''' Initializes a new instance of the <see cref="SafeDebugHandle"/> class with an existing handle.
         ''' </summary>
         ''' <param name="existingHandle">The existing handle to wrap.</param>
         ''' <param name="ownsHandle">Indicates whether the handle should be released when this SafeHandle is released.</param>
@@ -31,14 +31,6 @@
         Protected Overrides Function ReleaseHandle() As Boolean
             Return NativeMethods.CloseHandle(handle)
         End Function
-
-        ''' <summary>
-        ''' Creates a new instance of the <see cref="SafeTokenHandle"/> class from a token.
-        ''' </summary>
-        ''' <param name="tokenHandle">The token handle to wrap.</param>
-        ''' <returns>A new <see cref="SafeTokenHandle"/> instance.</returns>
-        Public Shared Function FromHandle(tokenHandle As IntPtr) As SafeTokenHandle
-            Return New SafeTokenHandle(tokenHandle, True)
-        End Function
     End Class
 End Namespace
+

@@ -338,7 +338,6 @@
             If Equals(processHandle, NativeMethods.NullHandleValue) Then
                 Exit Sub
             End If
-
             Dim promptMessage As String = $"{methodName}: Failed to terminate Notepad process."
             Try
                 Using safeHandle As New SafeProcessHandle(processHandle, True)

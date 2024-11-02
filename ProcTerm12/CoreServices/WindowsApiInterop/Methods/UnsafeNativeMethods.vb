@@ -100,7 +100,12 @@
         ''' </param>
         ''' <param name="handleAttributes">
         ''' A <c>ULONG</c> that specifies the desired attributes for the new handle.
-        ''' For more information about attributes, see the description of the Attributes member in <see cref="ObjectAttributes"/>. 
+        ''' This parameter uses the flags defined in the <see cref="ObjectAttributeFlags"/> enum
+        ''' to specify characteristics and behaviors for the handle instead of directly utilizing
+        ''' the <see cref="ObjectAttributes"/> structure. By using the enum, we can simplify 
+        ''' the process of setting attributes, as the enum values represent specific options
+        ''' without requiring the overhead of the full structure. For more information about attributes, 
+        ''' see the description of the Attributes member in <see cref="ObjectAttributes"/>. 
         ''' This parameter is passed with the <c>[In]</c> attribute.
         ''' </param>
         ''' <param name="options">
@@ -134,7 +139,7 @@
             <[In], [Optional]> targetProcessHandle As IntPtr,
             <[Out], [Optional]> ByRef targetHandle As IntPtr,
             <[In]> desiredAccess As ProcessAccessRights,
-            <[In]> handleAttributes As ObjectAttributes,
+            <[In]> handleAttributes As ObjectAttributeFlags ,
             <[In]> options As DuplicateOptions
         ) As Integer
         End Function
@@ -247,5 +252,71 @@
             <[In], [Optional]> ByRef clientId As ClientId
         ) As Integer
         End Function
+
+        ''' <summary>
+        ''' Creates a debug object, which can be used to debug processes and threads.
+        ''' </summary>
+        ''' <param name="debugObjectHandle">
+        ''' The handle to the debug object. This parameter is passed with the <c>[Out]</c> attribute.
+        ''' </param>
+        ''' <param name="desiredAccess">
+        ''' The access rights for the debug object. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="objectAttributes">
+        ''' An optional pointer to an <see cref="ObjectAttributes"/> structure that specifies the attributes of the debug object. 
+        ''' This parameter is passed with the <c>[In]</c> attribute and can be <c>NULL</c> if no attributes are specified.
+        ''' </param>
+        ''' <param name="killProcessOnExit">
+        ''' A <c>BOOLEAN</c> value that indicates whether the system should terminate all processes associated with the debug object when it is closed. 
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="http://undocumented.ntinternals.net/index.html">NtCreateDebugObject documentation</see> for more information.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' NTSTATUS NtCreateDebugObject(
+        '''   OUT PHANDLE             DebugObjectHandle,
+        '''   IN ACCESS_MASK          DesiredAccess,
+        '''   IN POBJECT_ATTRIBUTES   ObjectAttributes OPTIONAL,
+        '''   IN BOOLEAN              KillProcessOnExit
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Ntdll, SetLastError:=True)>
+        Friend Shared Function NtCreateDebugObject(
+            <Out> ByRef debugObjectHandle As IntPtr,
+            <[In]> desiredAccess As UInteger,
+            <[In]> objectAttributes As ObjectAttributes,
+            <[In]> killProcessOnExit As Boolean
+        ) As UInteger
+        End Function
+
+        ''' <summary>
+        ''' Attaches a debugger to the specified process.
+        ''' </summary>
+        ''' <param name="processHandle">
+        ''' A handle to the process to which the debugger is to be attached. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="debugObjectHandle">
+        ''' A handle to the debug object that will be used for the debugging session. This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="http://undocumented.ntinternals.net/index.html">NtDebugActiveProcess documentation</see> for more information.
+        ''' 
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' NTSTATUS NtDebugActiveProcess(
+        '''   [in] HANDLE ProcessHandle,
+        '''   [in] HANDLE DebugObjectHandle
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Ntdll, SetLastError:=True)>
+        Friend Shared Function NtDebugActiveProcess(
+            <[In]> processHandle As IntPtr,
+            <[In]> debugObjectHandle As IntPtr
+        ) As Integer
+        End Function
     End Class
 End Namespace
+

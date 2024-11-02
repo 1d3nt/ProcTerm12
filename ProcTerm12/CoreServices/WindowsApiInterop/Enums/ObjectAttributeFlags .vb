@@ -5,14 +5,18 @@
     ''' This enum is used in various Windows API functions to define specific object characteristics.
     ''' </summary>
     ''' <remarks>
-    ''' The <see cref="ObjectAttributes"/> enum defines flags that modify the behavior of object creation and management functions.
+    ''' This enum is distinct from the <see cref="ObjectAttributes"/> structure, which represents the actual object attributes as defined in C++. 
+    ''' The structure contains fields that provide additional details about an object, such as its length, security descriptors, and root directory.
+    ''' 
+    ''' <remarks>
+    ''' The <see cref="ObjectAttributeFlags "/> enum defines flags that modify the behavior of object creation and management functions.
     ''' These attributes are utilized in calls to functions such as <see cref="UnsafeNativeMethods.NtDuplicateObject"/> or <see cref="UnSafeNativeMethods.NtOpenProcess"/>.
     ''' 
     ''' <list type="bullet">
-    '''     <item><description><see cref="ObjectAttributes.DefaultAttributes"/>: No attributes specified. This is the default state for an object. In C++: <code>0</code>.</description></item>
-    '''     <item><description><see cref="ObjectAttributes.ProtectFromClose"/>: Prevents the object from being closed. This is useful for objects that should remain accessible even when other handles are being closed. In C++: <code>0x1</code>.</description></item>
-    '''     <item><description><see cref="ObjectAttributes.Inherit"/>: Allows the object to be inherited by child processes. This is important for synchronization objects and other resources that need to be shared. In C++: <code>0x2</code>.</description></item>
-    '''     <item><description><see cref="ObjectAttributes.AuditObjectClose"/>: Generates an audit event when the object is closed. This is critical for security and compliance monitoring, ensuring that object usage is tracked. In C++: <code>0x4</code>.</description></item>
+    '''     <item><description><see cref="ObjectAttributeFlags.DefaultAttributes"/>: No attributes specified. This is the default state for an object. In C++: <code>0</code>.</description></item>
+    '''     <item><description><see cref="ObjectAttributeFlags.ProtectFromClose"/>: Prevents the object from being closed. This is useful for objects that should remain accessible even when other handles are being closed. In C++: <code>0x1</code>.</description></item>
+    '''     <item><description><see cref="ObjectAttributeFlags.Inherit"/>: Allows the object to be inherited by child processes. This is important for synchronization objects and other resources that need to be shared. In C++: <code>0x2</code>.</description></item>
+    '''     <item><description><see cref="ObjectAttributeFlags.AuditObjectClose"/>: Generates an audit event when the object is closed. This is critical for security and compliance monitoring, ensuring that object usage is tracked. In C++: <code>0x4</code>.</description></item>
     ''' </list>
     ''' 
     ''' For further details on how these attributes are applied, refer to:
@@ -33,7 +37,7 @@
     ''' </example>
     ''' </remarks>
     <Flags>
-    Friend Enum ObjectAttributes As Byte
+    Friend Enum ObjectAttributeFlags As Byte
 
         ''' <summary>
         ''' No attributes specified. This is the default state for an object.

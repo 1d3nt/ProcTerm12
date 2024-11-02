@@ -176,7 +176,7 @@
         ''' before the process is terminated.
         ''' </remarks>
         Private Async Function DelayBeforeKillingProcess() As Task
-            Const delayMilliseconds = 5000
+            Const delayMilliseconds = 3000
             PromptUserAboutDelay(delayMilliseconds)
             Await AsynchronousProcessor.SimulateDelayedResponse(delayMilliseconds)
         End Function

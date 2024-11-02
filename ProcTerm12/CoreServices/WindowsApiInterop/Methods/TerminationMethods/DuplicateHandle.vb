@@ -55,16 +55,13 @@
                     isSuccess = isSuccess AndAlso waitSuccess
                 End If
             Finally
-                If Not Equals(handle, IntPtr.Zero) Then
-                    HandleManager.CloseHandleIfNotNull(handle)
-                End If
+                CloseHandle(handle)
             End Try
             If Not isSuccess AndAlso Not IfAllElseFailsFinalProcessIsAliveCheck(processId, userPrompter) Then
                 isSuccess = True
             End If
             Return isSuccess
         End Function
-
 
         ''' <summary>
         ''' Closes all handles associated with the process.
@@ -146,6 +143,16 @@
         End Function
 
         ''' <summary>
+        ''' Closes the handle if it is not null.
+        ''' </summary>
+        ''' <param name="handle">The handle to close.</param>
+        Private Shared Sub CloseHandle(handle As IntPtr)
+            If Not Equals(handle, IntPtr.Zero) Then
+                HandleManager.CloseHandleIfNotNull(handle)
+            End If
+        End Sub
+
+        ''' <summary>
         ''' Duplicates a handle with the same access rights.
         ''' </summary>
         ''' <param name="handle">The handle of the process containing the source handle.</param>
@@ -155,7 +162,7 @@
         Private Shared Function DuplicateHandleWithSameAccess(handle As IntPtr, sourceHandle As IntPtr, ByRef targetHandle As IntPtr) As Integer
             Return UnsafeNativeMethods.NtDuplicateObject(handle, sourceHandle, handle, targetHandle,
                                                          ProcessAccessRights.All,
-                                                         ObjectAttributes.DefaultAttributes,
+                                                         ObjectAttributeFlags.DefaultAttributes,
                                                          DuplicateOptions.DuplicateSameAccess)
         End Function
 
@@ -169,7 +176,7 @@
         Private Shared Function DuplicateAndCloseSourceHandle(handle As IntPtr, sourceHandle As IntPtr, ByRef targetHandle As IntPtr) As Integer
             Return UnsafeNativeMethods.NtDuplicateObject(handle, sourceHandle, IntPtr.Zero, targetHandle,
                                                          ProcessAccessRights.DefaultAccess,
-                                                         ObjectAttributes.DefaultAttributes,
+                                                         ObjectAttributeFlags.DefaultAttributes,
                                                          DuplicateOptions.DuplicateCloseSource)
         End Function
 
