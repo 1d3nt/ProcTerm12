@@ -69,7 +69,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Ntdll, SetLastError:=True)>
         Friend Shared Function NtTerminateProcess(
-            <[In]> processHandle As IntPtr,
+            <[In]> processHandle As SafeProcessHandle,
             <[In]> exitStatus As Integer
         ) As NtStatus
         End Function
@@ -134,12 +134,12 @@
         ''' </remarks>
         <DllImport(ExternDll.Ntdll)>
         Friend Shared Function NtDuplicateObject(
-            <[In]> sourceProcessHandle As IntPtr,
+            <[In]> sourceProcessHandle As SafeProcessHandle,
             <[In]> sourceHandle As IntPtr,
-            <[In], [Optional]> targetProcessHandle As IntPtr,
+            <[In], [Optional]> targetProcessHandle As SafeProcessHandle,
             <[Out], [Optional]> ByRef targetHandle As IntPtr,
             <[In]> desiredAccess As ProcessAccessRights,
-            <[In]> handleAttributes As ObjectAttributeFlags ,
+            <[In]> handleAttributes As ObjectAttributeFlags,
             <[In]> options As DuplicateOptions
         ) As Integer
         End Function
@@ -206,7 +206,7 @@
 
         <DllImport(ExternDll.Ntdll, SetLastError:=True)>
         Friend Shared Function NtWaitForSingleObject(
-            <[In]> handle As IntPtr,
+            <[In]> handle As intptr,
             <[In]> alertable As Boolean,
             <[In]> timeout As IntPtr
         ) As Integer

@@ -112,7 +112,7 @@
             AddServices(services, errorHandlingServices)
         End Sub
 
-                ''' <summary>
+        ''' <summary>
         ''' Registers user input services.
         ''' </summary>
         ''' <param name="services">
@@ -134,6 +134,11 @@
         '''       typically used in setup tasks where user confirmation is needed.
         '''     </description>
         '''   </item>
+        '''   <item>
+        '''     <description>
+        '''       <see cref="IConsoleClearer"/> is implemented by <see cref="ConsoleClearer"/>. This service clears the console.
+        '''     </description>
+        '''   </item>
         ''' </list>
         ''' </remarks>
         ''' <seealso cref="AddServices"/>
@@ -141,10 +146,13 @@
         ''' <seealso cref="UserInputReader"/>
         ''' <seealso cref="IUserPrompter"/>
         ''' <seealso cref="UserPrompter"/>
+        ''' <seealso cref="IConsoleClearer"/>
+        ''' <seealso cref="ConsoleClearer"/>
         Private Shared Sub RegisterUserInputServices(services As IServiceCollection)
             Dim userInputServices As New Dictionary(Of Type, Type) From {
                         {GetType(IUserInputReader), GetType(UserInputReader)},
-                        {GetType(IUserPrompter), GetType(UserPrompter)}
+                        {GetType(IUserPrompter), GetType(UserPrompter)},
+                        {GetType(IConsoleClearer), GetType(ConsoleClearer)}
                     }
             AddServices(services, userInputServices)
         End Sub

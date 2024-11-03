@@ -16,15 +16,15 @@
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
         Friend Shared Function Kill(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean        
-            If Not ValidateAndPromptProcessHandle(processHandle, userPrompter) Then
+            If Not ValidateProcessHandle(processHandle, userPrompter) Then
                 Return False
             End If
             Dim objectAttributes As New ObjectAttributes()
             If Not InitializeObjectAttributes(objectAttributes, userPrompter) Then
                 Return False
             End If
-            Using debugObjectHandle As SafeDebugHandle = CreateDebugObject(objectAttributes, userPrompter)
-                If Not ValidateAndPromptDebugHandle(debugObjectHandle, userPrompter) Then
+            Using debugObjectHandle As SafeProcessHandle = CreateDebugObject(objectAttributes, userPrompter)
+                If Not ValidateProcessHandle(debugObjectHandle, userPrompter) Then
                     Return False
                 End If
                 If Not AttachToProcessForDebugging(processHandle, debugObjectHandle, userPrompter) Then
@@ -40,28 +40,12 @@
         ''' <param name="processHandle">The handle to validate.</param>
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>True if the handle is valid; otherwise, false.</returns>
-        Private Shared Function ValidateAndPromptProcessHandle(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function ValidateProcessHandle(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             Try
                 ProcessHandleValidator.ValidateProcessHandle(processHandle)
                 Return True
             Catch ex As ArgumentException
                 userPrompter.Prompt("Invalid process handle.")
-                Return False
-            End Try
-        End Function
-
-        ''' <summary>
-        ''' Validates the debug handle and prompts the user if invalid.
-        ''' </summary>
-        ''' <param name="debugHandle">The handle to validate.</param>
-        ''' <param name="userPrompter">The user prompter for interaction.</param>
-        ''' <returns>True if the handle is valid; otherwise, false.</returns>
-        Private Shared Function ValidateAndPromptDebugHandle(debugHandle As SafeDebugHandle, userPrompter As IUserPrompter) As Boolean
-            Try
-                ProcessHandleValidator.ValidateDebugHandle(debugHandle)
-                Return True
-            Catch ex As ArgumentException
-                userPrompter.Prompt("Invalid debug object handle.")
                 Return False
             End Try
         End Function
@@ -87,14 +71,14 @@
         ''' <param name="objectAttributes">The object attributes for the debug object.</param>
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>The handle of the created debug object.</returns>
-        Private Shared Function CreateDebugObject(objectAttributes As ObjectAttributes, userPrompter As IUserPrompter) As SafeDebugHandle
+        Private Shared Function CreateDebugObject(objectAttributes As ObjectAttributes, userPrompter As IUserPrompter) As SafeProcessHandle
             Dim debugObjectHandle As IntPtr
             Dim result As UInteger = UnsafeNativeMethods.NtCreateDebugObject(debugObjectHandle, ProcessAccessRights.All, objectAttributes, True)
             If result < NtStatus.StatusSuccess Then
                 userPrompter.Prompt("Failed to create debug object.")
                 Return Nothing
             End If
-            Return New SafeDebugHandle(debugObjectHandle, True)
+            Return New SafeProcessHandle(debugObjectHandle, True)
         End Function
 
         ''' <summary>
@@ -104,7 +88,7 @@
         ''' <param name="debugObjectHandle">The handle of the debug object.</param>
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>True if the process was attached for debugging successfully; otherwise, false.</returns>
-        Private Shared Function AttachToProcessForDebugging(processHandle As SafeProcessHandle, debugObjectHandle As SafeDebugHandle, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function AttachToProcessForDebugging(processHandle As SafeProcessHandle, debugObjectHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             Dim result As Integer = UnsafeNativeMethods.NtDebugActiveProcess(processHandle.DangerousGetHandle(), debugObjectHandle.DangerousGetHandle())
             If result < NtStatus.StatusSuccess Then
                 userPrompter.Prompt("Failed to attach to the process for debugging.")

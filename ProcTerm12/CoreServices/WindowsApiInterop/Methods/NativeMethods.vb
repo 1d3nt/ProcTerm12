@@ -294,7 +294,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function TerminateThread(
-            <[In], Out> hThread As IntPtr,
+            <[In], Out> hThread As SafeProcessHandle,
             <[In]> dwExitCode As UInteger
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
@@ -327,7 +327,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function Thread32First(
-            <[In]> hSnapshot As IntPtr,
+            <[In]> hSnapshot As SafeProcessHandle,
             <[In], Out> lpte As ThreadEntry32
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
@@ -360,7 +360,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function Thread32Next(
-            <[In]> hSnapshot As IntPtr,
+            <[In]> hSnapshot As SafeProcessHandle,
             <[Out]> lpte As ThreadEntry32
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
@@ -581,7 +581,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function CreateRemoteThread(
-            <[In]> hProcess As IntPtr,
+            <[In]> hProcess As SafeProcessHandle,
             <[In]> lpThreadAttributes As IntPtr,
             <[In]> dwStackSize As UInteger,
             <[In]> lpStartAddress As IntPtr,
@@ -666,7 +666,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function VirtualAllocEx(
-            <[In]> hProcess As IntPtr,
+            <[In]> hProcess As SafeProcessHandle,
             <[In], [Optional]> lpAddress As IntPtr,
             <[In]> dwSize As UIntPtr,
             <[In]> flAllocationType As UInteger,
@@ -713,7 +713,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function WriteProcessMemory(
-            <[In]> hProcess As IntPtr,
+            <[In]> hProcess As SafeProcessHandle,
             <[In]> lpBaseAddress As IntPtr,
             <[In]> lpBuffer As IntPtr,
             <[In]> nSize As UInteger,
@@ -755,7 +755,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function VirtualFreeEx(
-            <[In]> hProcess As IntPtr,
+            <[In]> hProcess As SafeProcessHandle,
             <[In]> lpAddress As IntPtr,
             <[In]> dwSize As UIntPtr,
             <[In]> dwFreeType As UInteger
@@ -794,7 +794,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function WaitForSingleObject(
-            <[In]> hHandle As IntPtr,
+            <[In]> hHandle As SafeProcessHandle,
             <[In]> dwMilliseconds As UInteger
         ) As UInteger
         End Function
@@ -900,7 +900,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Unicode, SetLastError:=True)>
         Friend Shared Function AssignProcessToJobObject(
-            <[In]> hJob As SafeJobHandle,
+            <[In]> hJob As SafeProcessHandle,
             <[In]> hProcess As SafeProcessHandle
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
@@ -933,7 +933,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function TerminateJobObject(
-            <[In]> hJob As SafeJobHandle,
+            <[In]> hJob As SafeProcessHandle,
             <[In]> uExitCode As UInteger
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
         End Function
@@ -978,7 +978,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Unicode, SetLastError:=True)>
         Friend Shared Function SetInformationJobObject(
-            <[In]> hJob As SafeJobHandle,
+            <[In]> hJob As SafeProcessHandle,
             <[In]> infoType As JobObjectInformationClass,
             <[In]> lpJobObjectInfo As IntPtr,
             <[In]> cbJobObjectInfoLength As UInteger

@@ -16,6 +16,15 @@
         Private Const InvalidHandle As Integer = 6
 
         ''' <summary>
+        ''' Represents the name of the Kernel32 DLL used in Windows API calls.
+        ''' </summary>
+        ''' <remarks>
+        ''' This constant is primarily used in P/Invoke declarations that require a reference to the Kernel32 DLL, 
+        ''' such as the <see cref="NativeMethods.GetModuleHandle"/> method.
+        ''' </remarks>
+        Private Const Kernel32Dll As String = "kernel32.dll"
+
+        ''' <summary>
         ''' Terminates the specified process by creating a remote thread that executes ExitProcess.
         ''' </summary>
         ''' <param name="processHandle">
@@ -29,9 +38,11 @@
         ''' </returns>
         Friend Shared Function Kill(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             Try
-                ProcessHandleValidator.ValidateProcessHandle(processHandle)
-                Dim processId As UInteger = ProcessUtility.GetProcessId(processHandle, userPrompter)
-                If processId = 0 Then
+                If Not ValidateProcessHandle(processHandle, userPrompter) Then
+                    Return False
+                End If
+                Dim processId As UInteger
+                If Not TryGetProcessId(processHandle, processId, userPrompter) Then
                     Return False
                 End If
                 Dim exitProcessAddress As IntPtr = GetExitProcessAddress(userPrompter)
@@ -55,9 +66,38 @@
             Catch ex As Exception
                 userPrompter.Prompt("An error occurred: " & ex.Message)
                 Return False
-            Finally
-                HandleManager.CloseProcessHandleIfNotNull(processHandle)
             End Try
+        End Function
+
+        ''' <summary>
+        ''' Validates the process handle and prompts the user if invalid.
+        ''' </summary>
+        ''' <param name="processHandle">The handle to validate.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        ''' <returns>True if the handle is valid; otherwise, false.</returns>
+        Private Shared Function ValidateProcessHandle(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
+            Try
+                ProcessHandleValidator.ValidateProcessHandle(processHandle)
+                Return True
+            Catch ex As ArgumentException
+                userPrompter.Prompt("Invalid process handle.")
+                Return False
+            End Try
+        End Function
+
+        ''' <summary>
+        ''' Retrieves the process ID from the process handle.
+        ''' </summary>
+        ''' <param name="processHandle">The handle of the process.</param>
+        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
+        ''' <returns><c>True</c> if the process ID was retrieved successfully; otherwise, <c>False</c>.</returns>
+        Private Shared Function TryGetProcessId(processHandle As SafeProcessHandle, ByRef processId As UInteger, userPrompter As IUserPrompter) As Boolean
+            processId = ProcessUtility.GetProcessId(processHandle, userPrompter)
+            If processId = 0 Then
+                userPrompter.Prompt("Failed to retrieve process ID.")
+                Return False
+            End If
+            Return True
         End Function
 
         ''' <summary>
@@ -66,14 +106,14 @@
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
         ''' <returns>The address of the ExitProcess function, or NativeMethods.NullHandleValue if an error occurred.</returns>
         Private Shared Function GetExitProcessAddress(userPrompter As IUserPrompter) As IntPtr
-            Dim hModule As IntPtr = NativeMethods.GetModuleHandle("kernel32.dll")
+            Dim hModule As IntPtr = NativeMethods.GetModuleHandle(Kernel32Dll)
             If Equals(hModule, NativeMethods.NullHandleValue) Then
-                userPrompter.Prompt("Failed to get module handle for kernel32.dll. Last error: " & Win32Error.GetLastPInvokeError())
+                userPrompter.Prompt($"Failed to get module handle for kernel32.dll. Last error: {Win32Error.GetLastPInvokeError()}")
                 Return NativeMethods.NullHandleValue
             End If
             Dim exitProcessAddress As IntPtr = NativeMethods.GetProcAddress(hModule, "ExitProcess")
             If Equals(exitProcessAddress, NativeMethods.NullHandleValue) Then
-                userPrompter.Prompt("Failed to get address of ExitProcess. Last error: " & Win32Error.GetLastPInvokeError())
+                userPrompter.Prompt($"Failed to get address of ExitProcess. Last error: {Win32Error.GetLastPInvokeError()}")
             End If
             Return exitProcessAddress
         End Function
@@ -86,9 +126,9 @@
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
         ''' <returns>The address of the allocated memory, or NativeMethods.NullHandleValue if an error occurred.</returns>
         Private Shared Function AllocateMemory(processHandle As SafeProcessHandle, exitProcessAddress As IntPtr, userPrompter As IUserPrompter) As IntPtr
-            Dim allocatedMemory As IntPtr = NativeMethods.VirtualAllocEx(processHandle.DangerousGetHandle(), IntPtr.Zero, New UIntPtr(CUInt(Marshal.SizeOf(exitProcessAddress))), NativeMethods.MemCommit Or NativeMethods.MemReserve, NativeMethods.PageExecuteReadWrite)
+            Dim allocatedMemory As IntPtr = NativeMethods.VirtualAllocEx(processHandle, IntPtr.Zero, New UIntPtr(CUInt(Marshal.SizeOf(exitProcessAddress))), NativeMethods.MemCommit Or NativeMethods.MemReserve, NativeMethods.PageExecuteReadWrite)
             If Equals(allocatedMemory, NativeMethods.NullHandleValue) Then
-                userPrompter.Prompt("Failed to allocate memory in target process. Last error: " & Win32Error.GetLastPInvokeError())
+                userPrompter.Prompt($"Failed to allocate memory in target process. Last error: {Win32Error.GetLastPInvokeError()}")
             End If
             Return allocatedMemory
         End Function
@@ -105,9 +145,9 @@
             Dim bytesWritten As UInteger
             Dim addressBytes As Byte() = BitConverter.GetBytes(exitProcessAddress.ToInt64())
             Dim addressIntPtr = New IntPtr(BitConverter.ToInt64(addressBytes, 0))
-            Dim success As Boolean = NativeMethods.WriteProcessMemory(processHandle.DangerousGetHandle(), allocatedMemory, addressIntPtr, CType(addressBytes.Length, UInteger), bytesWritten)
+            Dim success As Boolean = NativeMethods.WriteProcessMemory(processHandle, allocatedMemory, addressIntPtr, CType(addressBytes.Length, UInteger), bytesWritten)
             If Not success Then
-                userPrompter.Prompt("Failed to write memory in target process. Last error: " & Win32Error.GetLastPInvokeError())
+                userPrompter.Prompt($"Failed to write memory in target process. Last error: {Win32Error.GetLastPInvokeError()}")
                 Return False
             End If
             Return True
@@ -121,20 +161,22 @@
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
         ''' <returns><c>True</c> if the remote thread was successfully created and completed; otherwise, <c>False</c>.</returns>
         Private Shared Function CreateAndWaitForRemoteThread(processHandle As SafeProcessHandle, allocatedMemory As IntPtr, userPrompter As IUserPrompter) As Boolean
-            Using threadHandle As SafeThreadHandle = SafeThreadHandle.FromHandle(NativeMethods.CreateRemoteThread(processHandle.DangerousGetHandle(), IntPtr.Zero, 0, allocatedMemory, IntPtr.Zero, 0, 0))
-                If threadHandle Is Nothing OrElse threadHandle.IsInvalid Then
-                    userPrompter.Prompt("Failed to create remote thread in target process. Last error: " & Win32Error.GetLastPInvokeError())
+            userPrompter.Prompt("Attempting to create a remote thread in the target process.")
+            Using threadHandle As New SafeProcessHandle(NativeMethods.CreateRemoteThread(processHandle, NativeMethods.NullHandleValue, 0, allocatedMemory, NativeMethods.NullHandleValue, 0, 0), True)
+                If threadHandle.IsInvalid Then
+                    userPrompter.Prompt($"Failed to create remote thread in target process. Last error: {Win32Error.GetLastPInvokeError()}")
                     Return False
                 End If
-                Dim waitResult As UInteger = NativeMethods.WaitForSingleObject(threadHandle.DangerousGetHandle(), NativeMethods.MemInfinite)
+                userPrompter.Prompt("Remote thread created successfully. Waiting for the remote thread to complete.")
+                Dim waitResult As UInteger = NativeMethods.WaitForSingleObject(threadHandle, NativeMethods.MemInfinite)
                 If waitResult <> 0 Then
-                    userPrompter.Prompt("Failed to wait for remote thread to complete. Last error: " & Win32Error.GetLastPInvokeError())
+                    userPrompter.Prompt($"Failed to wait for remote thread to complete. Last error: {Win32Error.GetLastPInvokeError()}")
                     Return False
                 End If
+                userPrompter.Prompt("Remote thread completed successfully.")
             End Using
             Return True
         End Function
-
 
         ''' <summary>
         ''' Frees allocated memory in the specified process and handles potential race conditions 
@@ -154,11 +196,11 @@
         ''' since the process is assumed to have exited if they occur, but any other errors are reported.
         ''' </remarks>
         Private Shared Function FreeAllocatedMemory(processHandle As SafeProcessHandle, allocatedMemory As IntPtr, processId As UInteger, userPrompter As IUserPrompter) As Boolean
-            Dim success As Boolean = NativeMethods.VirtualFreeEx(processHandle.DangerousGetHandle(), allocatedMemory, UIntPtr.Zero, NativeMethods.MemRelease)
+            Dim success As Boolean = NativeMethods.VirtualFreeEx(processHandle, allocatedMemory, UIntPtr.Zero, NativeMethods.MemRelease)
             If Not success Then
                 Dim lastError As Integer = Win32Error.GetLastPInvokeErrorCode()
                 If lastError <> InvalidHandle AndAlso lastError <> AccessDenied Then
-                    userPrompter.Prompt("Failed to free allocated memory in target process. Last error: " & lastError)
+                    userPrompter.Prompt($"Failed to free allocated memory in target process. Last error: {LastError}")
                     If CheckIfProcessIsRunning(processId, userPrompter, "Notepad process is still running.") Then
                         Return False
                     End If

@@ -127,7 +127,8 @@
         ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
         ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
         Private Shared Function NtTerminateProcessWrapper(safeHandle As SafeProcessHandle) As Boolean
-            Return NtTerminateProcessMethod.Kill(safeHandle, -1)
+            Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
+            Return NtTerminateProcessMethod.Kill(safeHandle, -1, userPrompter)
         End Function
 
         ''' <summary>

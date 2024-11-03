@@ -29,7 +29,7 @@
         ''' <remarks>
         ''' This method validates the provided process handle and retrieves the corresponding process ID. It then attempts 
         ''' to open the process with the appropriate access rights. The method iterates through the handles of the process 
-        ''' and attempts to close each one using <see cref="CloseHandle"/>. After closing the handles, it waits for the 
+        ''' and attempts to close each one using <see cref="NativeMethods.CloseHandle"/>. After closing the handles, it waits for the 
         ''' process to enter a signaled state using <see cref="UnsafeNativeMethods.NtWaitForSingleObject"/> with an 
         ''' infinite timeout. Upon completion, it checks the exit code of the process to determine if it is still active 
         ''' or has exited successfully.
@@ -38,30 +38,98 @@
         ''' <see cref="IfAllElseFailsFinalProcessIsAliveCheck"/> method to ensure the process state is correctly assessed.
         ''' </remarks>
         Friend Shared Function Kill(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
-            ProcessHandleValidator.ValidateProcessHandle(processHandle)
-            Dim processId As UInteger = ProcessUtility.GetProcessId(processHandle, userPrompter)
-            If processId = 0 Then
+            If Not ValidateProcessHandle(processHandle, userPrompter) Then
                 Return False
             End If
-            Dim handle As IntPtr = IntPtr.Zero
-            Dim clientId As New ClientId(New IntPtr(processId), IntPtr.Zero)
+            Dim processId As UInteger
+            If Not TryGetProcessId(processHandle, processId, userPrompter) Then
+                Return False
+            End If
+            Using handle As SafeProcessHandle = OpenProcessHandle(processId, userPrompter)
+                If handle Is Nothing Then
+                    Return False
+                End If
+                If Not TerminateProcessByClosingHandles(handle, userPrompter) Then
+                    OutputUnableToCloseHandleMessage(userPrompter)
+                End If
+            End Using
+            If Not IfAllElseFailsFinalProcessIsAliveCheck(processId, userPrompter) Then
+                Return False
+            End If
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' Validates the process handle and prompts the user if invalid.
+        ''' </summary>
+        ''' <param name="processHandle">The handle to validate.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        ''' <returns>True if the handle is valid; otherwise, false.</returns>
+        Private Shared Function ValidateProcessHandle(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
+            Try
+                ProcessHandleValidator.ValidateProcessHandle(processHandle)
+                Return True
+            Catch ex As ArgumentException
+                userPrompter.Prompt("Invalid process handle.")
+                Return False
+            End Try
+        End Function
+
+        ''' <summary>
+        ''' Retrieves the process ID from the process handle.
+        ''' </summary>
+        ''' <param name="processHandle">The handle of the process.</param>
+        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
+        ''' <returns><c>True</c> if the process ID was retrieved successfully; otherwise, <c>False</c>.</returns>
+        Private Shared Function TryGetProcessId(processHandle As SafeProcessHandle, ByRef processId As UInteger, userPrompter As IUserPrompter) As Boolean
+            processId = ProcessUtility.GetProcessId(processHandle, userPrompter)
+            If processId = 0 Then
+                userPrompter.Prompt("Failed to retrieve process ID.")
+                Return False
+            End If
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' Opens a handle to the process with the specified process ID.
+        ''' </summary>
+        ''' <param name="processId">The ID of the process.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        ''' <returns>The safe handle to the process.</returns>
+        Private Shared Function OpenProcessHandle(processId As UInteger, userPrompter As IUserPrompter) As SafeProcessHandle
+            Dim handle As IntPtr = NativeMethods.NullHandleValue
+            Dim clientId As New ClientId(New IntPtr(processId), NativeMethods.NullHandleValue)
             Dim objectAttributes As New ObjectAttributes()
             Dim status As Integer = UnsafeNativeMethods.NtOpenProcess(handle, ProcessAccessRights.DuplicateHandle, objectAttributes, clientId)
-            Dim isSuccess As Boolean
-            Try
-                If status = 0 AndAlso Not Equals(handle, IntPtr.Zero) Then
-                    isSuccess = CloseAllHandles(handle, userPrompter)
-                    Dim waitSuccess As Boolean = WaitForProcessTermination(handle, userPrompter)
-                    isSuccess = isSuccess AndAlso waitSuccess
-                End If
-            Finally
-                CloseHandle(handle)
-            End Try
-            If Not isSuccess AndAlso Not IfAllElseFailsFinalProcessIsAliveCheck(processId, userPrompter) Then
-                isSuccess = True
+            If status <> 0 OrElse Equals(handle, IntPtr.Zero) Then
+                userPrompter.Prompt("Failed to open process handle.")
+                Return Nothing
+            End If
+            Return New SafeProcessHandle(handle, True)
+        End Function
+
+        ''' <summary>
+        ''' Terminates the process by closing all handles and waiting for termination.
+        ''' </summary>
+        ''' <param name="handle">The handle to the process.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        ''' <returns>True if the process was successfully terminated; otherwise, False.</returns>
+        Private Shared Function TerminateProcessByClosingHandles(handle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
+            Dim isSuccess As Boolean = CloseAllHandles(handle, userPrompter)
+            If Not WaitForProcessTermination(handle, userPrompter) Then
+                userPrompter.Prompt("Process termination wait failed.")
             End If
             Return isSuccess
         End Function
+
+        ''' <summary>
+        ''' Outputs a message indicating that the handle could not be closed, including the last error code.
+        ''' </summary>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        Private Shared Sub OutputUnableToCloseHandleMessage(userPrompter As IUserPrompter)
+            Dim lastError = Win32Error.GetLastPInvokeError()
+            userPrompter.Prompt($"Unable to close handle. Last Error Code: {lastError}")
+        End Sub
 
         ''' <summary>
         ''' Closes all handles associated with the process.
@@ -69,10 +137,10 @@
         ''' <param name="handle">The handle of the process.</param>
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns><c>True</c> if all handles were closed successfully; otherwise, <c>False</c>.</returns>
-        Private Shared Function CloseAllHandles(handle As IntPtr, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function CloseAllHandles(handle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             Dim isSuccess = True
             For i = 0 To MaxHandleValue Step 4
-                If Not CloseHandle(handle, CType(i, IntPtr)) Then
+                If Not CloseHandle(handle, CType(i, IntPtr), userPrompter) Then
                     isSuccess = False
                 Else
                     userPrompter.Prompt($"Closed handle 0x{i:X4}")
@@ -107,12 +175,12 @@
         ''' For more details on process termination and exit codes, refer to the following:
         ''' <see href="https://learn.microsoft.com/en-us/windows/desktop/api/processthreads/nf-processthreads-getexitcodeprocess">GetExitCodeProcess documentation</see>.
         ''' </remarks>
-        Private Shared Function WaitForProcessTermination(handle As IntPtr, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function WaitForProcessTermination(handle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             Dim timeout = UnsafeNativeMethods.Infinite
-            Dim waitResult As Integer = UnsafeNativeMethods.NtWaitForSingleObject(handle, False, timeout)
+            Dim waitResult As Integer = UnsafeNativeMethods.NtWaitForSingleObject(handle.DangerousGetHandle(), False, timeout)
             If waitResult = NativeMethods.WaitObject0 Then
                 Dim exitCode As UInteger
-                If NativeMethods.GetExitCodeProcess(handle, exitCode) AndAlso exitCode <> NativeMethods.StillActive Then
+                If NativeMethods.GetExitCodeProcess(handle.DangerousGetHandle(), exitCode) AndAlso exitCode <> NativeMethods.StillActive Then
                     userPrompter.Prompt("Process has exited successfully.")
                     Return True
                 End If
@@ -126,29 +194,33 @@
         ''' </summary>
         ''' <param name="handle">The handle of the process containing the source handle.</param>
         ''' <param name="sourceHandle">The handle to attempt to close.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns><c>True</c> if the handle was closed successfully; otherwise, <c>False</c>.</returns>
-        Friend Shared Function CloseHandle(handle As IntPtr, sourceHandle As IntPtr) As Boolean
+        Friend Shared Function CloseHandle(handle As SafeProcessHandle, sourceHandle As IntPtr, userPrompter As IUserPrompter) As Boolean
             Dim targetHandle = NativeMethods.NullHandleValue
             Dim success = DuplicateHandleWithSameAccess(handle, sourceHandle, targetHandle)
             If success = NtStatus.StatusSuccess AndAlso Not Equals(targetHandle, NativeMethods.NullHandleValue) Then
                 Try
                     success = DuplicateAndCloseSourceHandle(handle, sourceHandle, targetHandle)
                 Finally
-                    If Not Equals(targetHandle, NativeMethods.NullHandleValue) Then
-                        success = UnsafeNativeMethods.NtClose(targetHandle)
-                    End If
+                    CloseTargetHandle(targetHandle, sourceHandle, userPrompter)
                 End Try
             End If
             Return success = NtStatus.StatusSuccess
         End Function
 
         ''' <summary>
-        ''' Closes the handle if it is not null.
+        ''' Closes the target handle and prompts the user if the operation fails.
         ''' </summary>
-        ''' <param name="handle">The handle to close.</param>
-        Private Shared Sub CloseHandle(handle As IntPtr)
-            If Not Equals(handle, IntPtr.Zero) Then
-                HandleManager.CloseHandleIfNotNull(handle)
+        ''' <param name="targetHandle">The handle to be closed.</param>
+        ''' <param name="sourceHandle">The original source handle.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        Private Shared Sub CloseTargetHandle(targetHandle As IntPtr, sourceHandle As IntPtr, userPrompter As IUserPrompter)
+            If Not Equals(targetHandle, NativeMethods.NullHandleValue) Then
+                Dim closeResult = UnsafeNativeMethods.NtClose(targetHandle)
+                If closeResult <> NtStatus.StatusSuccess Then
+                    userPrompter.Prompt($"Failed to close handle 0x{sourceHandle.ToInt32():X4}")
+                End If
             End If
         End Sub
 
@@ -159,25 +231,27 @@
         ''' <param name="sourceHandle">The handle to duplicate.</param>
         ''' <param name="targetHandle">The duplicated handle.</param>
         ''' <returns>The status of the duplication operation.</returns>
-        Private Shared Function DuplicateHandleWithSameAccess(handle As IntPtr, sourceHandle As IntPtr, ByRef targetHandle As IntPtr) As Integer
+        Private Shared Function DuplicateHandleWithSameAccess(handle As SafeProcessHandle, sourceHandle As IntPtr, ByRef targetHandle As IntPtr) As Integer
             Return UnsafeNativeMethods.NtDuplicateObject(handle, sourceHandle, handle, targetHandle,
                                                          ProcessAccessRights.All,
                                                          ObjectAttributeFlags.DefaultAttributes,
                                                          DuplicateOptions.DuplicateSameAccess)
         End Function
 
-        ''' <summary>
+        '' <summary>
         ''' Duplicates a handle and closes the source handle.
         ''' </summary>
         ''' <param name="handle">The handle of the process containing the source handle.</param>
         ''' <param name="sourceHandle">The handle to duplicate and close.</param>
         ''' <param name="targetHandle">The duplicated handle.</param>
         ''' <returns>The status of the duplication and close operation.</returns>
-        Private Shared Function DuplicateAndCloseSourceHandle(handle As IntPtr, sourceHandle As IntPtr, ByRef targetHandle As IntPtr) As Integer
-            Return UnsafeNativeMethods.NtDuplicateObject(handle, sourceHandle, IntPtr.Zero, targetHandle,
-                                                         ProcessAccessRights.DefaultAccess,
-                                                         ObjectAttributeFlags.DefaultAttributes,
-                                                         DuplicateOptions.DuplicateCloseSource)
+        Private Shared Function DuplicateAndCloseSourceHandle(handle As SafeProcessHandle, sourceHandle As IntPtr, ByRef targetHandle As IntPtr) As Integer
+            Using invalidHandle As New SafeProcessHandle(NativeMethods.NullHandleValue, False)
+                Return UnsafeNativeMethods.NtDuplicateObject(handle, sourceHandle, invalidHandle, targetHandle,
+                                                             ProcessAccessRights.DefaultAccess,
+                                                             ObjectAttributeFlags.DefaultAttributes,
+                                                             DuplicateOptions.DuplicateCloseSource)
+            End Using
         End Function
 
         ''' <summary>

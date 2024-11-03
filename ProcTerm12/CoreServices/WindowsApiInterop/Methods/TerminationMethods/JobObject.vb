@@ -20,7 +20,7 @@
                 userPrompter.Prompt("Failed to get process ID from handle.")
                 Return False
             End If
-            Using jobHandle As SafeJobHandle = CreateJobObject(processId, userPrompter)
+            Using jobHandle As SafeProcessHandle = CreateJobObject(processId, userPrompter)
                 If Not ValidateJobHandle(jobHandle, userPrompter) Then
                     Return False
                 End If
@@ -60,9 +60,9 @@
         ''' <param name="jobHandle">The handle of the job to validate.</param>
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
         ''' <returns><c>True</c> if the job handle is valid; otherwise, <c>False</c>.</returns>
-        Private Shared Function ValidateJobHandle(jobHandle As SafeJobHandle, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function ValidateJobHandle(jobHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             Try
-                ProcessHandleValidator.ValidateJobHandle(jobHandle)
+                ProcessHandleValidator.ValidateProcessHandle(jobHandle)
                 Return True
             Catch ex As ArgumentException
                 userPrompter.Prompt("Invalid job handle.")
@@ -77,7 +77,7 @@
         ''' <param name="processId">The ID of the process to assign to the job object.</param>
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
         ''' <returns><c>True</c> if the process was successfully assigned to the job object; otherwise, <c>False</c>.</returns>
-        Private Shared Function AssignProcessToJobObject(jobHandle As SafeJobHandle, processId As UInteger, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function AssignProcessToJobObject(jobHandle As SafeProcessHandle, processId As UInteger, userPrompter As IUserPrompter) As Boolean
             Using procHandle As SafeProcessHandle = OpenProcess(ProcessAccessRights.All, False, processId)
                 If Not procHandle.IsInvalid Then
                     If Not NativeMethods.AssignProcessToJobObject(jobHandle, procHandle) Then
@@ -107,14 +107,14 @@
         ''' <param name="processId">The ID of the process.</param>
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>The handle of the created job object.</returns>
-        Private Shared Function CreateJobObject(processId As UInteger, userPrompter As IUserPrompter) As SafeJobHandle
+        Private Shared Function CreateJobObject(processId As UInteger, userPrompter As IUserPrompter) As SafeProcessHandle
             Dim jobHandle = NativeMethods.CreateJobObjectA(NativeMethods.NullHandleValue, $"ProcessJob{processId}")
             If Equals(jobHandle, NativeMethods.NullHandleValue) Then
                 userPrompter.Prompt("Failed to create job object.")
-                Return New SafeJobHandle(NativeMethods.NullHandleValue, True)
+                Return New SafeProcessHandle(NativeMethods.NullHandleValue, True)
             Else
                 userPrompter.Prompt("Job object created successfully.")
-                Return New SafeJobHandle(jobHandle, True)
+                Return New SafeProcessHandle(jobHandle, True)
             End If
         End Function
 
@@ -140,7 +140,7 @@
         ''' <param name="jobInfo">The pointer to the job object information.</param>
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns><c>True</c> if the information was set successfully; otherwise, <c>False</c>.</returns>
-        Private Shared Function SetJobObjectInformation(jobHandle As SafeJobHandle, jobInfo As IntPtr, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function SetJobObjectInformation(jobHandle As SafeProcessHandle, jobInfo As IntPtr, userPrompter As IUserPrompter) As Boolean
             Dim jobInfoLength = Marshal.SizeOf(GetType(JobObjectExtendedLimitInformation))
             If Not NativeMethods.SetInformationJobObject(jobHandle, JobObjectInformationClass.JobObjectExtendedLimitInformation, jobInfo, CUInt(jobInfoLength)) Then
                 userPrompter.Prompt("Failed to set job object information.")
@@ -156,7 +156,7 @@
         ''' <param name="jobHandle">The handle of the job object.</param>
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns><c>True</c> if the job object was terminated successfully; otherwise, <c>False</c>.</returns>
-        Private Shared Function TerminateJobObject(jobHandle As SafeJobHandle, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function TerminateJobObject(jobHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             If Not NativeMethods.TerminateJobObject(jobHandle, 0) Then
                 userPrompter.Prompt("Failed to terminate job object.")
                 Return False
