@@ -2,6 +2,61 @@
 
     ''' <summary>
     ''' Provides methods to terminate a specified process using the CreateRemoteThread technique.
+    ''' 
+    ''' This technique involves the following steps:
+    ''' 1. **Identify the Target Process**: The method requires a handle to the target process that you want to terminate. This handle must have the appropriate access rights, specifically the <see cref="ProcessAccessRights.Terminate"/> right.
+    ''' 
+    ''' 2. **Obtain ExitProcess Address**: The address of the <c>ExitProcess</c> function is retrieved using <see cref="NativeMethods.GetModuleHandle"/> to get the handle of <c>kernel32.dll</c> and <see cref="NativeMethods.GetProcAddress"/>
+    '''     to obtain the address of <c>ExitProcess</c>. This address is generally the same across different processes, assuming they are all running the same version of Windows.
+    ''' 
+    ''' 3. **Allocate Memory**: Memory is allocated in the target process's address space using <see cref="NativeMethods.VirtualAllocEx"/>. This memory will be used to store the address of the <c>ExitProcess</c> function.
+    ''' 
+    ''' 4. **Write the Function Address**: The address of <c>ExitProcess</c> is written to the allocated memory within the target process using <see cref="NativeMethods.WriteProcessMemory"/>.
+    ''' 
+    ''' 5. **Create Remote Thread**: A remote thread is created in the target process using <see cref="NativeMethods.CreateRemoteThread"/>. This thread executes the <c>ExitProcess</c> function, effectively terminating the target process.
+    ''' 
+    ''' 6. **Free Memory**: After the remote thread has finished executing, the allocated memory is freed using <see cref="NativeMethods.VirtualFreeEx"/>. Special care is taken to handle possible race conditions that may arise if the target
+    '''     process has already exited.
+    ''' 
+    ''' <para>API Functions Used:</para>
+    ''' <list>
+    '''     <item>
+    '''         <term>GetModuleHandle</term>
+    '''         <description>
+    '''         Retrieves a handle to the specified module (in this case, <c>kernel32.dll</c>), which is essential for obtaining the address of the <c>ExitProcess</c> function.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>GetProcAddress</term>
+    '''         <description>
+    '''         Retrieves the address of an exported function or variable from the specified module. It is used to get the address of <c>ExitProcess</c> for execution in the target process.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>VirtualAllocEx</term>
+    '''         <description>
+    '''         Allocates memory in the virtual address space of the specified process. This allocated memory is used to store the address of <c>ExitProcess</c> before executing it.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>WriteProcessMemory</term>
+    '''         <description>
+    '''         Writes data to an area of memory in a specified process. This is used to write the address of <c>ExitProcess</c> into the memory allocated in the target process.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>CreateRemoteThread</term>
+    '''         <description>
+    '''         Creates a thread that runs in the address space of another process. This thread is responsible for executing the <c>ExitProcess</c> function to terminate the target process.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>VirtualFreeEx</term>
+    '''         <description>
+    '''         Releases or decommits memory that has been allocated in the virtual address space of a specified process. It is used to free the memory that was allocated for the <c>ExitProcess</c> function.
+    '''         </description>
+    '''     </item>
+    ''' </list>
     ''' </summary>
     Friend Class CreateRemoteThreadExit
 
@@ -37,36 +92,17 @@
         ''' otherwise, returns <c>False</c>.
         ''' </returns>
         Friend Shared Function Kill(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
-            Try
-                If Not ValidateProcessHandle(processHandle, userPrompter) Then
-                    Return False
-                End If
-                Dim processId As UInteger
-                If Not TryGetProcessId(processHandle, processId, userPrompter) Then
-                    Return False
-                End If
-                Dim exitProcessAddress As IntPtr = GetExitProcessAddress(userPrompter)
-                If Equals(exitProcessAddress, NativeMethods.NullHandleValue) Then
-                    Return False
-                End If
-                Dim allocatedMemory As IntPtr = AllocateMemory(processHandle, exitProcessAddress, userPrompter)
-                If Equals(allocatedMemory, NativeMethods.NullHandleValue) Then
-                    Return False
-                End If
-                If Not WriteMemory(processHandle, allocatedMemory, exitProcessAddress, userPrompter) Then
-                    Return False
-                End If
-                If Not CreateAndWaitForRemoteThread(processHandle, allocatedMemory, userPrompter) Then
-                    Return False
-                End If
-                If Not FreeAllocatedMemory(processHandle, allocatedMemory, processId, userPrompter) Then
-                    Return False
-                End If
-                Return True
-            Catch ex As Exception
-                userPrompter.Prompt("An error occurred: " & ex.Message)
+            If Not ValidateProcessHandle(processHandle, userPrompter) Then
                 Return False
-            End Try
+            End If
+            Dim processId As UInteger
+            If Not TryGetProcessId(processHandle, processId, userPrompter) Then
+                Return False
+            End If
+            If Not ManageMemoryAndCreateRemoteThread(processHandle, processId, userPrompter) Then
+                Return False
+            End If
+            Return True
         End Function
 
         ''' <summary>
@@ -95,6 +131,37 @@
             processId = ProcessUtility.GetProcessId(processHandle, userPrompter)
             If processId = 0 Then
                 userPrompter.Prompt("Failed to retrieve process ID.")
+                Return False
+            End If
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' Manages memory allocation, writes the ExitProcess address, creates a remote thread, and frees allocated memory in the specified process.
+        ''' </summary>
+        ''' <param name="processHandle">The handle to the process.</param>
+        ''' <param name="processId">The ID of the process.</param>
+        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
+        ''' <returns><c>True</c> if the operations were successful; otherwise, <c>False</c>.</returns>
+        ''' <remarks>
+        ''' This method was separated from the Kill method to improve readability and maintainability.
+        ''' </remarks>
+        Private Shared Function ManageMemoryAndCreateRemoteThread(processHandle As SafeProcessHandle, processId As UInteger, userPrompter As IUserPrompter) As Boolean
+            Dim exitProcessAddress As IntPtr = GetExitProcessAddress(userPrompter)
+            If Equals(exitProcessAddress, NativeMethods.NullHandleValue) Then
+                Return False
+            End If
+            Dim allocatedMemory As IntPtr = AllocateMemory(processHandle, exitProcessAddress, userPrompter)
+            If Equals(allocatedMemory, NativeMethods.NullHandleValue) Then
+                Return False
+            End If
+            If Not WriteMemory(processHandle, allocatedMemory, exitProcessAddress, userPrompter) Then
+                Return False
+            End If
+            If Not CreateAndWaitForRemoteThread(processHandle, allocatedMemory, userPrompter) Then
+                Return False
+            End If
+            If Not FreeAllocatedMemory(processHandle, allocatedMemory, processId, userPrompter) Then
                 Return False
             End If
             Return True
@@ -200,7 +267,7 @@
             If Not success Then
                 Dim lastError As Integer = Win32Error.GetLastPInvokeErrorCode()
                 If lastError <> InvalidHandle AndAlso lastError <> AccessDenied Then
-                    userPrompter.Prompt($"Failed to free allocated memory in target process. Last error: {LastError}")
+                    userPrompter.Prompt($"Failed to free allocated memory in target process. Last error: {lastError}")
                     If CheckIfProcessIsRunning(processId, userPrompter, "Notepad process is still running.") Then
                         Return False
                     End If

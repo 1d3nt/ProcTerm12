@@ -122,13 +122,13 @@
 #Region " Synchronous Wrappers "
 
         ''' <summary>
-        ''' Wrapper method for NtTerminateProcessMethod.Kill to match the expected delegate signature.
+        ''' Wrapper method for NtTerminateProcess.Kill to match the expected delegate signature.
         ''' </summary>
         ''' <param name="safeHandle">The safe handle of the process to terminate.</param>
         ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
         Private Shared Function NtTerminateProcessWrapper(safeHandle As SafeProcessHandle) As Boolean
             Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
-            Return NtTerminateProcessMethod.Kill(safeHandle, -1, userPrompter)
+            Return NtTerminateProcess.Kill(safeHandle, -1, userPrompter)
         End Function
 
         ''' <summary>
@@ -361,7 +361,7 @@
         ''' <param name="methodName">The name of the termination method for logging purposes.</param>
         ''' <returns>The process handle for Notepad, or IntPtr.Zero if not found.</returns>
         Private Function GetProcessHandle(methodName As String) As IntPtr
-            Dim processHandle As IntPtr = ProcessUtility.GetNotepadHandle()
+            Dim processHandle As IntPtr = ProcessUtility.GetNotepadHandleByName()
             If Equals(processHandle, NativeMethods.NullHandleValue) Then
                 _userPrompter.Prompt($"{methodName}: No running Notepad process found.")
                 Return IntPtr.Zero

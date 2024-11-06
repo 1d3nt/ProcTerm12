@@ -16,7 +16,12 @@
     <SuppressUnmanagedCodeSecurity>
     Friend NotInheritable Class NativeMethods
 
-#Region " Comnstants "
+#Region " Constants "
+
+        ''' <summary>
+        ''' Represents the error code for an invalid parameter.
+        ''' </summary>
+        Friend Const ErrorInvalidParameter As Integer = 0
 
         ''' <summary>
         ''' Represents the success status code returned by wait functions, such as <see cref="WaitForSingleObject"/>, 
@@ -137,15 +142,6 @@
         ''' </code>
         ''' </remarks>
         Friend Const Th32CsSnapAll As UInteger = &H18
-
-        ''' <summary>
-        ''' Disables all access to the committed region of pages.
-        ''' </summary>
-        ''' <remarks>
-        ''' An attempt to read from, write to, or execute the committed region results in an access violation.
-        ''' This flag is not supported by the <c>CreateFileMapping</c> function.
-        ''' </remarks>
-        Friend Const PageNoAccess As UInteger = &H1
 #End Region ' Constants
 
         ''' <summary>
@@ -428,7 +424,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function GetProcessId(
-            <[In]> hThread As IntPtr
+            <[In]> hThread As SafeProcessHandle
         ) As UInteger
         End Function
 
