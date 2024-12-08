@@ -78,21 +78,45 @@
         ''' <summary>
         ''' Allocates physical storage in memory for a specified region of pages.
         ''' </summary>
+        ''' <remarks>
+        ''' This constant is used with memory allocation functions such as <see cref="VirtualAllocEx"/> 
+        ''' to specify that the allocated pages should be committed, meaning physical storage is allocated for them.
+        ''' For additional details, see:
+        ''' https://learn.microsoft.com/en-us/windows/win32/memory/memory-protection-constants
+        ''' </remarks>
         Friend Const MemCommit As UInteger = &H1000
 
         ''' <summary>
         ''' Reserves a range of the process's virtual address space without allocating physical storage.
         ''' </summary>
+        ''' <remarks>
+        ''' This constant is used with memory allocation functions such as <see cref="VirtualAllocEx"/> 
+        ''' to reserve virtual memory address space without committing physical storage.
+        ''' For additional details, see:
+        ''' https://learn.microsoft.com/en-us/windows/win32/memory/memory-protection-constants
+        ''' </remarks>
         Friend Const MemReserve As UInteger = &H2000
 
         ''' <summary>
         ''' Enables execute, read, and write access to the committed region of pages.
         ''' </summary>
+        ''' <remarks>
+        ''' This constant is used with memory protection functions, such as <see cref="VirtualProtectEx"/>, 
+        ''' to set the specified region's protection to allow execution, reading, and writing.
+        ''' For additional details, see:
+        ''' https://learn.microsoft.com/en-us/windows/win32/memory/memory-protection-constants
+        ''' </remarks>
         Friend Const PageExecuteReadWrite As UInteger = &H40
 
         ''' <summary>
         ''' Decommits the specified region of committed pages, releasing the physical storage.
         ''' </summary>
+        ''' <remarks>
+        ''' This constant is used with memory release functions such as <see cref="VirtualFreeEx"/> 
+        ''' to release physical storage associated with the specified region.
+        ''' For additional details, see:
+        ''' https://learn.microsoft.com/en-us/windows/win32/memory/memory-protection-constants
+        ''' </remarks>
         Friend Const MemRelease As UInteger = &H8000
 
         ''' <summary>
