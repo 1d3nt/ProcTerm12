@@ -12,6 +12,12 @@
     Friend NotInheritable Class Win32Error
 
         ''' <summary>
+        ''' Prevents a default instance of the <see cref="Win32Error"/> class from being created.
+        ''' </summary>
+        Private Sub New()
+        End Sub
+
+        ''' <summary>
         ''' Retrieves the error message associated with the error code returned by the last unmanaged function called via platform invoke (P/Invoke)
         ''' that has the <see cref="DllImportAttribute.SetLastError"/> flag set.
         ''' This method is available in .NET Framework and earlier .NET versions.

@@ -15,9 +15,8 @@
             If Not ValidateProcessHandle(processHandle, userPrompter) Then
                 Return False
             End If
-            Dim processId As UInteger = ProcessUtility.GetProcessId(processHandle, userPrompter)
-            If processId = 0 Then
-                userPrompter.Prompt("Failed to get process ID from handle.")
+            Dim processId As UInteger
+            If Not TryGetProcessId(processHandle, processId, userPrompter) Then
                 Return False
             End If
             Using jobHandle As SafeProcessHandle = CreateJobObject(processId, userPrompter)
@@ -52,6 +51,21 @@
                 userPrompter.Prompt("Invalid process handle.")
                 Return False
             End Try
+        End Function
+
+        ''' <summary>
+        ''' Retrieves the process ID from the process handle.
+        ''' </summary>
+        ''' <param name="processHandle">The handle of the process.</param>
+        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
+        ''' <returns><c>True</c> if the process ID was retrieved successfully; otherwise, <c>False</c>.</returns>
+        Private Shared Function TryGetProcessId(processHandle As SafeProcessHandle, ByRef processId As UInteger, userPrompter As IUserPrompter) As Boolean
+            processId = ProcessUtility.GetProcessId(processHandle, userPrompter)
+            If processId = 0 Then
+                userPrompter.Prompt("Failed to retrieve process ID.")
+                Return False
+            End If
+            Return True
         End Function
 
         ''' <summary>

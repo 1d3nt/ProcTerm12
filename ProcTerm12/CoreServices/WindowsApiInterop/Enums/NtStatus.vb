@@ -19,6 +19,7 @@
     ''' This ensures that the enum is kept complete for completeness and future extensibility, despite not being utilized directly in the current project.
     ''' </remarks>
     Friend Enum NtStatus As UInteger
+
         ''' <summary>
         ''' Indicates successful operation.
         ''' </summary>

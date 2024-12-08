@@ -128,7 +128,7 @@
         ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
         Private Shared Function NtTerminateProcessWrapper(safeHandle As SafeProcessHandle) As Boolean
             Dim userPrompter As IUserPrompter = UserPrompterSingleton.Instance
-            Return NtTerminateProcess.Kill(safeHandle, -1, userPrompter)
+            Return NtTerminateProcess.Kill(safeHandle, 1, userPrompter)
         End Function
 
         ''' <summary>
@@ -359,14 +359,25 @@
         ''' Retrieves the process handle for Notepad.
         ''' </summary>
         ''' <param name="methodName">The name of the termination method for logging purposes.</param>
-        ''' <returns>The process handle for Notepad, or IntPtr.Zero if not found.</returns>
+        ''' <returns>The process handle for Notepad, or <see cref="NativeMethods.NullHandleValue"/> if not found.</returns>
+        ''' <exception cref="Win32Exception">
+        ''' Thrown when access is denied while trying to get the Notepad process handle.
+        ''' </exception>
         Private Function GetProcessHandle(methodName As String) As IntPtr
-            Dim processHandle As IntPtr = ProcessUtility.GetNotepadHandleByName()
-            If Equals(processHandle, NativeMethods.NullHandleValue) Then
-                _userPrompter.Prompt($"{methodName}: No running Notepad process found.")
-                Return IntPtr.Zero
-            End If
-            Return processHandle
+            Const accessDenied = 5
+            Try
+                Dim processHandle As IntPtr = ProcessUtility.GetNotepadHandleByName()
+                If Equals(processHandle, NativeMethods.NullHandleValue) Then
+                    _userPrompter.Prompt($"{methodName}: No running Notepad process found.")
+                    Return NativeMethods.NullHandleValue
+                End If
+                Return processHandle
+            Catch ex As Win32Exception
+                If ex.NativeErrorCode = accessDenied Then 
+                    _userPrompter.Prompt($"{methodName}: Access denied when trying to get the Notepad process handle. Error: {ex.Message}")
+                End If
+            End Try
+            Return NativeMethods.NullHandleValue
         End Function
 
         ''' <summary>

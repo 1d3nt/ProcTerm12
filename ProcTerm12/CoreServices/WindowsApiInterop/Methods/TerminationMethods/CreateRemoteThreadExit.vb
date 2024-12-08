@@ -53,11 +53,31 @@
     '''     <item>
     '''         <term>VirtualFreeEx</term>
     '''         <description>
-    '''         Releases or decommits memory that has been allocated in the virtual address space of a specified process. It is used to free the memory that was allocated for the <c>ExitProcess</c> function.
+    '''         Releases or de-commits memory that has been allocated in the virtual address space of a specified process. It is used to free the memory that was allocated for the <c>ExitProcess</c> function.
     '''         </description>
     '''     </item>
     ''' </list>
     ''' </summary>
+    ''' 
+    ''' <para>Considerations for Exit Code:</para>
+    ''' <remarks>
+    ''' The exit code of the target process may not always match the intended value due to the following factors:
+    ''' 
+    ''' 1. **Immediate Termination**: By injecting a remote thread to directly execute <c>ExitProcess</c>, the target process is terminated abruptly. It might not have the opportunity to perform any necessary cleanup, 
+    '''    which could result in an undefined or default exit code.
+    ''' 
+    ''' 2. **Lack of Custom Exit Code**: <c>ExitProcess</c> takes an exit code as its parameter. However, if the injected thread does not provide a meaningful value or is supplied with an incorrect value, the resulting 
+    '''    exit code might be invalid or misleading.
+    ''' 
+    ''' 3. **Memory Allocation Race Conditions**: If the remote thread execution and memory cleanup operations are not synchronized, the exit code might not be properly set before the process exits.
+    ''' 
+    ''' 4. **Thread Context Interference**: If other threads in the target process are actively running, they might interfere with or fail to properly signal the termination process, contributing to unpredictable 
+    '''    exit codes.
+    ''' 
+    ''' 5. **System Defaults**: If no specific exit code is provided, the system may assign a default exit code (commonly 0x0) or an error code depending on the state of the process at termination.
+    ''' 
+    ''' Developers should account for these factors when analyzing or relying on the exit codes of processes terminated using this technique.
+    ''' </remarks>
     Friend Class CreateRemoteThreadExit
 
         ''' <summary>
@@ -69,15 +89,6 @@
         ''' Represents the error code for an invalid handle.
         ''' </summary>
         Private Const InvalidHandle As Integer = 6
-
-        ''' <summary>
-        ''' Represents the name of the Kernel32 DLL used in Windows API calls.
-        ''' </summary>
-        ''' <remarks>
-        ''' This constant is primarily used in P/Invoke declarations that require a reference to the Kernel32 DLL, 
-        ''' such as the <see cref="NativeMethods.GetModuleHandle"/> method.
-        ''' </remarks>
-        Private Const Kernel32Dll As String = "kernel32.dll"
 
         ''' <summary>
         ''' Terminates the specified process by creating a remote thread that executes ExitProcess.
@@ -99,26 +110,20 @@
             If Not TryGetProcessId(processHandle, processId, userPrompter) Then
                 Return False
             End If
-            If Not ManageMemoryAndCreateRemoteThread(processHandle, processId, userPrompter) Then
+            If Not ManageMemoryAndCreateRemoteThread(processHandle, userPrompter) Then
                 Return False
             End If
-            Return True
+            Return WaitForProcessToExit(processHandle, userPrompter)
         End Function
 
         ''' <summary>
-        ''' Validates the process handle and prompts the user if invalid.
+        ''' Validates the provided process handle.
         ''' </summary>
-        ''' <param name="processHandle">The handle to validate.</param>
-        ''' <param name="userPrompter">The user prompter for interaction.</param>
-        ''' <returns>True if the handle is valid; otherwise, false.</returns>
+        ''' <param name="processHandle">The handle of the process to validate.</param>
+        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
+        ''' <returns><c>True</c> if the process handle is valid; otherwise, <c>False</c>.</returns>
         Private Shared Function ValidateProcessHandle(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
-            Try
-                ProcessHandleValidator.ValidateProcessHandle(processHandle)
-                Return True
-            Catch ex As ArgumentException
-                userPrompter.Prompt("Invalid process handle.")
-                Return False
-            End Try
+            Return ProcessHandleValidatorUtility.ValidateProcessHandle(processHandle, userPrompter)
         End Function
 
         ''' <summary>
@@ -140,13 +145,12 @@
         ''' Manages memory allocation, writes the ExitProcess address, creates a remote thread, and frees allocated memory in the specified process.
         ''' </summary>
         ''' <param name="processHandle">The handle to the process.</param>
-        ''' <param name="processId">The ID of the process.</param>
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
         ''' <returns><c>True</c> if the operations were successful; otherwise, <c>False</c>.</returns>
         ''' <remarks>
         ''' This method was separated from the Kill method to improve readability and maintainability.
         ''' </remarks>
-        Private Shared Function ManageMemoryAndCreateRemoteThread(processHandle As SafeProcessHandle, processId As UInteger, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function ManageMemoryAndCreateRemoteThread(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             Dim exitProcessAddress As IntPtr = GetExitProcessAddress(userPrompter)
             If Equals(exitProcessAddress, NativeMethods.NullHandleValue) Then
                 Return False
@@ -161,7 +165,7 @@
             If Not CreateAndWaitForRemoteThread(processHandle, allocatedMemory, userPrompter) Then
                 Return False
             End If
-            If Not FreeAllocatedMemory(processHandle, allocatedMemory, processId, userPrompter) Then
+            If Not FreeAllocatedMemory(processHandle, allocatedMemory, userPrompter) Then
                 Return False
             End If
             Return True
@@ -173,7 +177,7 @@
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
         ''' <returns>The address of the ExitProcess function, or NativeMethods.NullHandleValue if an error occurred.</returns>
         Private Shared Function GetExitProcessAddress(userPrompter As IUserPrompter) As IntPtr
-            Dim hModule As IntPtr = NativeMethods.GetModuleHandle(Kernel32Dll)
+            Dim hModule As IntPtr = NativeMethods.GetModuleHandle(ExternDll.Kernel32)
             If Equals(hModule, NativeMethods.NullHandleValue) Then
                 userPrompter.Prompt($"Failed to get module handle for kernel32.dll. Last error: {Win32Error.GetLastPInvokeError()}")
                 Return NativeMethods.NullHandleValue
@@ -235,7 +239,7 @@
                     Return False
                 End If
                 userPrompter.Prompt("Remote thread created successfully. Waiting for the remote thread to complete.")
-                Dim waitResult As UInteger = NativeMethods.WaitForSingleObject(threadHandle, NativeMethods.MemInfinite)
+                Dim waitResult As UInteger = NativeMethods.WaitForSingleObject(threadHandle.DangerousGetHandle(), NativeMethods.MemInfinite)
                 If waitResult <> 0 Then
                     userPrompter.Prompt($"Failed to wait for remote thread to complete. Last error: {Win32Error.GetLastPInvokeError()}")
                     Return False
@@ -252,7 +256,6 @@
         ''' <param name="processHandle">A <see cref="SafeProcessHandle"/> to the target process, 
         ''' which must have been previously validated.</param>
         ''' <param name="allocatedMemory">The memory address in the target process to be freed.</param>
-        ''' <param name="processId">The ID of the target process, used to check its status if freeing fails.</param>
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> for displaying user notifications.</param>
         ''' <returns><c>True</c> if the memory was successfully freed or the handle is invalid due to a race condition; 
         ''' otherwise, <c>False</c> if an unexpected error occurs.</returns>
@@ -262,35 +265,28 @@
         ''' resulting in a possible invalid handle or access denied error. These specific errors are ignored 
         ''' since the process is assumed to have exited if they occur, but any other errors are reported.
         ''' </remarks>
-        Private Shared Function FreeAllocatedMemory(processHandle As SafeProcessHandle, allocatedMemory As IntPtr, processId As UInteger, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function FreeAllocatedMemory(processHandle As SafeProcessHandle, allocatedMemory As IntPtr, userPrompter As IUserPrompter) As Boolean
             Dim success As Boolean = NativeMethods.VirtualFreeEx(processHandle, allocatedMemory, UIntPtr.Zero, NativeMethods.MemRelease)
             If Not success Then
                 Dim lastError As Integer = Win32Error.GetLastPInvokeErrorCode()
                 If lastError <> InvalidHandle AndAlso lastError <> AccessDenied Then
                     userPrompter.Prompt($"Failed to free allocated memory in target process. Last error: {lastError}")
-                    If CheckIfProcessIsRunning(processId, userPrompter, "Notepad process is still running.") Then
-                        Return False
-                    End If
+                    Return False
                 End If
             End If
             Return True
         End Function
 
         ''' <summary>
-        ''' Checks if a process with the specified process ID is running and prompts the user with a message if it is.
+        ''' Waits for the process to exit and handles the result.
         ''' </summary>
-        ''' <param name="processId">The ID of the process to check.</param>
-        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used to display messages to the user.</param>
-        ''' <param name="message">The message to display if the process is still running.</param>
-        ''' <returns>
-        ''' <c>True</c> if the process is still running and the user was prompted; otherwise, <c>False</c>.
-        ''' </returns>
-        Private Shared Function CheckIfProcessIsRunning(processId As UInteger, userPrompter As IUserPrompter, message As String) As Boolean
-            If ProcessUtility.IsProcessRunning(processId) Then
-                userPrompter.Prompt(message)
-                Return True
-            End If
-            Return False
+        ''' <param name="processHandle">The handle of the process to wait for.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        ''' <returns>True if the process exited successfully; otherwise, false.</returns>
+        Private Shared Function WaitForProcessToExit(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
+            Dim rawProcessHandle As IntPtr = processHandle.DangerousGetHandle()
+            Dim processExited As Boolean = ProcessWaitHandler.WaitForProcessExit(rawProcessHandle, userPrompter)
+            Return processExited
         End Function
     End Class
 End Namespace

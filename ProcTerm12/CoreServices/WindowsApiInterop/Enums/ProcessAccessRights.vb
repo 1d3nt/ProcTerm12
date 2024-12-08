@@ -42,7 +42,10 @@
 
         ''' <summary>
         ''' Grants the right to terminate a process.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
+        <UsedImplicitly>
         Terminate = &H1
 
         ''' <summary>
@@ -71,7 +74,10 @@
 
         ''' <summary>
         ''' Grants the right to write to virtual memory.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
+        <UsedImplicitly>
         VirtualMemoryWrite = &H20
 
         ''' <summary>
@@ -111,7 +117,6 @@
         ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
         ''' in the current code, but is included for completeness and potential future use.
         ''' </summary>
-        <UsedImplicitly>
         QueryInformation = &H400
 
         ''' <summary>
@@ -136,7 +141,10 @@
         ''' <remarks>
         ''' Corresponds to <c>0</c> in C++. This member indicates that no specific access rights are granted to the process. 
         ''' This can be useful in scenarios where a default or minimal access level is required without granting any privileges.
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         DefaultAccess = &H0
     End Enum
 End Namespace

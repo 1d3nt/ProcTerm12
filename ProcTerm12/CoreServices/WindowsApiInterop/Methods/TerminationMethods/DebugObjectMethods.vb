@@ -25,7 +25,7 @@
             End If
             Using debugObjectHandle As SafeProcessHandle = CreateDebugObject(objectAttributes, userPrompter)
                 If Not ValidateProcessHandle(debugObjectHandle, userPrompter) Then
-                    Return False
+               '     Return False
                 End If
                 If Not AttachToProcessForDebugging(processHandle, debugObjectHandle, userPrompter) Then
                     Return False

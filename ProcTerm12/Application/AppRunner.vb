@@ -143,9 +143,9 @@
                 If Integer.TryParse(CStr(terminationMethod), terminationMethodNumber) Then
                     LaunchProcess()
                     PromptUser(terminationMethodNumber)
-                    Await DelayWithMessage("The process will wait for 3 seconds before proceeding to attempt to kill it.")
+                    Await DelayWithMessage("The process will wait for 5 seconds before proceeding to attempt to kill it.")
                     Await ExecuteTerminationMethod(terminationMethodNumber)
-                    Await DelayWithMessage("Termination attempt complete. The console will be ready in 3 seconds.")
+                    Await DelayWithMessage("Termination attempt complete. The console will be ready in 5 seconds.")
                     ClearConsole()
                 End If
             Loop
@@ -196,7 +196,7 @@
         ''' before proceeding to the next step. This delay allows for any necessary preparation.
         ''' </remarks>
         Private Async Function DelayWithMessage(message As String) As Task
-            Const delayMilliseconds = 3000
+            Const delayMilliseconds = 5000
             PromptUserWithMessage(message)
             Await AsynchronousProcessor.SimulateDelayedResponse(delayMilliseconds)
         End Function

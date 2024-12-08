@@ -19,11 +19,6 @@
 #Region " Constants "
 
         ''' <summary>
-        ''' Represents the error code for an invalid parameter.
-        ''' </summary>
-        Friend Const ErrorInvalidParameter As Integer = 0
-
-        ''' <summary>
         ''' Represents the success status code returned by wait functions, such as <see cref="WaitForSingleObject"/>, 
         ''' when a specified object is in the signaled state.
         ''' </summary>
@@ -43,6 +38,24 @@
         ''' to signify that the process has not exited and remains active.
         ''' </remarks>
         Friend Const StillActive As UInteger = &H103UI
+
+        ''' <summary>
+        ''' Represents the status code returned by wait functions, such as <see cref="WaitForSingleObject"/>, when the specified wait operation times out.
+        ''' </summary>
+        ''' <remarks>
+        ''' The <c>WaitTimeout</c> constant indicates that the wait operation has failed due to a timeout, meaning the specified object did not enter the signaled state within the specified wait period.
+        ''' This value, typically <c>&H102</c>, is used by Windows API functions like <see cref="WaitForSingleObject"/> to indicate that the timeout interval elapsed before the wait operation could complete.
+        ''' </remarks>
+        Friend Const WaitTimeout As UInteger = &H102
+
+        ''' <summary>
+        ''' Represents the error code returned by wait functions when a failure occurs.
+        ''' </summary>
+        ''' <remarks>
+        ''' The <c>WaitFailed</c> constant, with a value of <c>&HFFFFFFFF</c>, indicates that the wait operation failed for an unspecified reason.
+        ''' This value is used by Windows API functions, such as <see cref="WaitForSingleObject"/>, to signify that an error occurred during the wait operation, preventing it from completing successfully.
+        ''' </remarks>
+        Friend Const WaitFailed As UInteger = &HFFFFFFFFUI
 
         ''' <summary>
         ''' Specifies the access right to terminate a thread.
@@ -142,6 +155,15 @@
         ''' </code>
         ''' </remarks>
         Friend Const Th32CsSnapAll As UInteger = &H18
+
+        ''' <summary>
+        ''' Represents a constant value for an invalid or uninitialized process ID.
+        ''' </summary>
+        ''' <remarks>
+        ''' This is a custom-defined constant and is not part of the official Microsoft-defined constants.
+        ''' It is used to signify an invalid or uninitialized process ID within the application context.
+        ''' </remarks>
+        Friend Const InvalidProcessId As UInteger = 0
 #End Region ' Constants
 
         ''' <summary>
@@ -461,7 +483,7 @@
         ''' );
         ''' </code>
         ''' </remarks>
-        <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Auto, SetLastError:=True)>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function OpenProcess(
             <[In]> dwDesiredAccess As ProcessAccessRights,
             <[In]> bInheritHandle As Boolean,
@@ -790,7 +812,7 @@
         ''' </remarks>
         <DllImport(ExternDll.Kernel32, SetLastError:=True)>
         Friend Shared Function WaitForSingleObject(
-            <[In]> hHandle As SafeProcessHandle,
+            <[In]> hHandle As IntPtr,
             <[In]> dwMilliseconds As UInteger
         ) As UInteger
         End Function

@@ -1,33 +1,56 @@
 ﻿Namespace CoreServices.WindowsApiInterop.Methods.TerminationMethods
 
     ''' <summary>
-    ''' Provides methods to terminate all threads of a specified process.
+    ''' Provides methods for terminating all threads of a specified process using the <c>TerminateThread</c> technique.
+    ''' 
+    ''' This technique involves the following steps:
+    ''' 
+    ''' 1. **Identify Target Threads**: First, the method retrieves a snapshot of all threads in the system using 
+    ''' <see cref="NativeMethods.CreateToolhelp32Snapshot"/> and filters for threads belonging to the target process.
+    ''' 
+    ''' 2. **Iterate Through Threads**: The method iterates through each thread in the snapshot. For each thread 
+    ''' that belongs to the target process, it attempts to open the thread handle with the required termination rights.
+    ''' 
+    ''' 3. **Terminate Each Thread**: For each thread handle that is successfully opened, the method calls 
+    ''' <see cref="NativeMethods.TerminateThread"/> to forcefully terminate the thread.
+    ''' 
+    ''' 4. **Handle Exceptions and Cleanup**: After each thread termination, the method ensures that all handles are 
+    ''' properly disposed of, and provides feedback if any threads cannot be terminated, which may indicate restricted 
+    ''' permissions or protected threads.
+    ''' 
+    ''' <para>API Functions Used:</para>
+    ''' <list type="bullet">
+    '''     <item>
+    '''         <term>CreateToolhelp32Snapshot</term>
+    '''         <description>
+    '''         Captures a snapshot of all threads in the system, allowing the method to enumerate threads associated 
+    '''         with the target process.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>Thread32First and Thread32Next</term>
+    '''         <description>
+    '''         These functions are used to retrieve information about the first thread and iterate through each 
+    '''         subsequent thread in the snapshot.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>OpenThread</term>
+    '''         <description>
+    '''         Opens a handle to each thread belonging to the target process with termination access rights.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>TerminateThread</term>
+    '''         <description>
+    '''         Terminates each open thread within the target process. This function should be used cautiously, 
+    '''         as forcefully terminating threads may lead to resource leaks or application instability.
+    '''         </description>
+    '''     </item>
+    ''' </list>
     ''' </summary>
     Friend Class TerminateThread
 
-        ''' <summary>
-        ''' Terminates all threads of the specified process using the provided thread handle.
-        ''' </summary>
-        ''' <param name="threadHandle">
-        ''' A handle to the thread to be terminated. The handle must have the 
-        ''' <see cref="ProcessAccessRights.Terminate"/> access right.
-        ''' </param>
-        ''' <param name="userPrompter">The user prompter for interaction.</param>
-        ''' <returns>
-        ''' Returns <c>True</c> if all threads were successfully terminated; 
-        ''' otherwise, returns <c>False</c>.
-        ''' </returns>
-        ''' <remarks>
-        ''' For more information, see 
-        ''' <see href="https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminatethread">
-        ''' the TerminateThread documentation</see>.
-        ''' 
-        ''' While we could directly retrieve the process ID from the process object, 
-        ''' this implementation first obtains the thread handle. From the thread handle, 
-        ''' we extract the process ID using <see cref="NativeMethods.GetProcessId"/>. This approach is 
-        ''' used to maintain consistency across all termination methods, ensuring that 
-        ''' all operations utilize <see cref="SafeProcessHandle"/> to manage handles safely.
-        ''' </remarks>
         ''' <summary>
         ''' Terminates all threads for the specified process.
         ''' </summary>

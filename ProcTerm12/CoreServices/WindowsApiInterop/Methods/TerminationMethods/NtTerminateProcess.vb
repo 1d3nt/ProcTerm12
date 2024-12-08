@@ -53,21 +53,6 @@
     '''         and the operating system will perform cleanup operations for that process.
     '''         </description>
     '''     </item>
-    '''     <item>
-    '''         <term>NtOpenProcess</term>
-    '''         <description>
-    '''         Opens an existing process and returns a handle to it. This handle must 
-    '''         have the appropriate access rights to terminate the process. This API is 
-    '''         crucial for obtaining the handle necessary to call <c>NtTerminateProcess</c>.
-    '''         </description>
-    '''     </item>
-    '''     <item>
-    '''         <term>NtClose</term>
-    '''         <description>
-    '''         Closes an open object handle. After successfully terminating a process, 
-    '''         it is good practice to close the handle to free system resources.
-    '''         </description>
-    '''     </item>
     ''' </list>
     ''' </remarks>
     Friend Class NtTerminateProcess
@@ -105,7 +90,10 @@
             If Not ValidateProcessHandle(processHandle, userPrompter) Then
                 Return False
             End If
-            Return TerminateProcess(processHandle, exitStatus)
+            If Not TerminateProcess(processHandle, exitStatus) Then
+                Return False
+            End If
+            Return WaitForProcessToExit(processHandle, userPrompter)
         End Function
 
         ''' <summary>
@@ -115,13 +103,7 @@
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
         ''' <returns><c>True</c> if the process handle is valid; otherwise, <c>False</c>.</returns>
         Private Shared Function ValidateProcessHandle(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
-            Try
-                ProcessHandleValidator.ValidateProcessHandle(processHandle)
-                Return True
-            Catch ex As ArgumentException
-                userPrompter.Prompt("Invalid process handle.")
-                Return False
-            End Try
+            Return ProcessHandleValidatorUtility.ValidateProcessHandle(processHandle, userPrompter)
         End Function
 
         ''' <summary>
@@ -133,6 +115,18 @@
         Private Shared Function TerminateProcess(processHandle As SafeProcessHandle, exitStatus As Integer) As Boolean
             Dim status = UnsafeNativeMethods.NtTerminateProcess(processHandle, exitStatus)
             Return status = NtStatus.StatusSuccess
+        End Function
+
+        ''' <summary>
+        ''' Waits for the process to exit and handles the result.
+        ''' </summary>
+        ''' <param name="processHandle">The handle of the process to wait for.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        ''' <returns>True if the process exited successfully; otherwise, false.</returns>
+        Private Shared Function WaitForProcessToExit(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
+            Dim rawProcessHandle As IntPtr = processHandle.DangerousGetHandle()
+            Dim processExited As Boolean = ProcessWaitHandler.WaitForProcessExit(rawProcessHandle, userPrompter)
+            Return processExited
         End Function
     End Class
 End Namespace

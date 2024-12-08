@@ -138,15 +138,14 @@
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns><c>True</c> if all handles were closed successfully; otherwise, <c>False</c>.</returns>
         Private Shared Function CloseAllHandles(handle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
-            Dim isSuccess = True
-            For i = 0 To MaxHandleValue Step 4
-                If Not CloseHandle(handle, CType(i, IntPtr), userPrompter) Then
-                    isSuccess = False
-                Else
-                    userPrompter.Prompt($"Closed handle 0x{i:X4}")
+            Dim allClosed = True
+            For Each handleValue In Enumerable.Range(0, (MaxHandleValue \ 4) + 1).Select(Function(i) CType(i * 4, IntPtr))
+                If Not CloseHandle(handle, handleValue, userPrompter) Then
+                    allClosed = False
                 End If
+                userPrompter.Prompt($"Closed handle 0x{handleValue:X4}")
             Next
-            Return isSuccess
+            Return allClosed
         End Function
 
         ''' <summary>

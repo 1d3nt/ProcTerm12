@@ -78,9 +78,7 @@
         ''' </summary>
         ''' <param name="handle">The handle to close.</param>
         Private Shared Sub CloseHandle(handle As IntPtr)
-            If Not Equals(handle, IntPtr.Zero) Then
-                HandleManager.CloseHandleIfNotNull(handle)
-            End If
+            HandleManager.CloseHandleIfNotNull(handle)
         End Sub
 
         ''' <summary>

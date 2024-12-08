@@ -131,7 +131,10 @@ Namespace Utilities
         ''' <c>True</c> if the method is between 1 and 12 or 'E'; otherwise, <c>False</c>.
         ''' </returns>
         Private Function IsValidMethod(method As String) As Boolean
-            If _terminationMethodRegex.IsMatch(method) Then
+            Dim parts = method.Split(" "c)
+            If parts.Length = 2 AndAlso Integer.TryParse(parts(0), Nothing) AndAlso Integer.TryParse(parts(1), Nothing) Then
+                Return True
+            ElseIf _terminationMethodRegex.IsMatch(method) Then
                 Return True
             Else
                 _prompter.Prompt($"Invalid method '{method}'. {SelectMethodPrompt}")

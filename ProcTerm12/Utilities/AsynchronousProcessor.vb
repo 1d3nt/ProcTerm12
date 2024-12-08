@@ -9,6 +9,12 @@
     Friend NotInheritable Class AsynchronousProcessor
 
         ''' <summary>
+        ''' Prevents a default instance of the <see cref="AsynchronousProcessor"/> class from being created.
+        ''' </summary>
+        Private Sub New()
+        End Sub
+
+        ''' <summary>
         ''' Simulates a delayed response by awaiting a specified delay.
         ''' </summary>
         ''' <param name="delayMilliseconds">The delay duration in milliseconds.</param>
