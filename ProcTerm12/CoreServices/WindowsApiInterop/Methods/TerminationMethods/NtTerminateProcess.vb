@@ -5,10 +5,19 @@
     ''' Windows NT Native API function that terminates a process and all of its associated threads.
     ''' </summary>
     ''' <remarks>
+    ''' This technique involves the following steps:
+    ''' 
+    ''' 1. **Validate Process Handle**: The method first validates the provided process handle to ensure it is valid and has the necessary permissions using <see cref="ProcessHandleValidatorUtility.ValidateProcessHandle"/>.
+    ''' 
+    ''' 2. **Terminate Process**: The <c>NtTerminateProcess</c> function is invoked to terminate the process and all of its threads, with a specified exit status. This function is a native call and performs a "hard" termination, bypassing cleanup routines.
+    ''' 
+    ''' 3. **Wait for Process Exit**: After calling <c>NtTerminateProcess</c>, the method waits for the process to completely exit using <see cref="ProcessWaitHandler.WaitForProcessExit"/>.
+    ''' 
+    ''' <para>
     ''' The <c>NtTerminateProcess</c> API is part of the Windows NT Native API set, which operates below the Win32 API layer.
     ''' Unlike the Win32 <c>TerminateProcess</c> function, <c>NtTerminateProcess</c> is intended for use by the 
     ''' operating system itself and, as such, is not officially documented for direct use by applications.
-    ''' 
+    ''' </para>
     ''' <para>
     ''' <b>Behavior and Usage</b>:
     ''' <c>NtTerminateProcess</c> allows direct termination of a process by its handle, terminating all threads associated
@@ -17,7 +26,6 @@
     ''' where process cleanup is unnecessary or when terminating potentially harmful or unresponsive processes, especially 
     ''' when higher-level APIs may be intercepted or insufficient.
     ''' </para>
-    ''' 
     ''' <para>
     ''' <b>System Internals</b>:
     ''' Internally, <c>NtTerminateProcess</c> is implemented in <c>ntdll.dll</c> and interacts directly with the kernel to 
@@ -26,7 +34,6 @@
     ''' is a native API call, its execution is subject to fewer restrictions than standard user-mode APIs, although it still 
     ''' requires appropriate access rights (i.e., <see cref="ProcessAccessRights.Terminate"/>).
     ''' </para>
-    ''' 
     ''' <para>
     ''' <b>Considerations and Risks</b>:
     ''' Using <c>NtTerminateProcess</c> requires careful consideration, as it forcibly terminates the target process without 
@@ -35,14 +42,12 @@
     ''' can vary between different Windows versions, and its use can impact system stability or reliability in production 
     ''' environments.
     ''' </para>
-    ''' 
     ''' <para>
     ''' <b>Alternative Methods</b>:
     ''' In cases where a less aggressive termination is preferred, consider using <c>TerminateProcess</c>, which 
     ''' integrates with the standard Win32 API and may provide a safer or more predictable outcome. Additionally, 
     ''' <c>CreateRemoteThread</c> with <c>ExitProcess</c> can offer a more controlled termination within user-mode space.
     ''' </para>
-    '''
     ''' <para>API Functions Used:</para>
     ''' <list>
     '''     <item>

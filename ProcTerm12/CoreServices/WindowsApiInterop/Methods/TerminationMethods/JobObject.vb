@@ -1,8 +1,89 @@
 ﻿Namespace CoreServices.WindowsApiInterop.Methods.TerminationMethods
 
     ''' <summary>
-    ''' Provides methods to terminate processes by creating and managing job objects.
+    ''' The <c>JobObject</c> class provides methods to terminate processes by creating and managing job objects. This technique involves creating a job object, assigning the process to the job object, setting job object
+    ''' information to ensure termination when the job is closed, and finally terminating the process by closing the job object.
     ''' </summary>
+    ''' <remarks>
+    ''' This technique involves the following steps:
+    ''' 1. **Validate Process Handle**: The method first validates the provided process handle using <see cref="ProcessHandleValidatorUtility.ValidateProcessHandle"/>.
+    ''' 
+    ''' 2. **Retrieve Process ID**: The process ID is retrieved from the process handle using <see cref="ProcessUtility.GetProcessId"/>.
+    ''' 
+    ''' 3. **Create and Configure Job Object**: A job object is created using <see cref="NativeMethods.CreateJobObjectA"/>, and process assignment is handled using <see cref="NativeMethods.AssignProcessToJobObject"/>.
+    ''' 
+    ''' 4. **Set Job Object Information**: The job object information is set to ensure termination when the job is closed, using <see cref="NativeMethods.SetInformationJobObject"/>.
+    ''' 
+    ''' 5. **Terminate Job Object**: The job object is terminated using <see cref="NativeMethods.TerminateJobObject"/> to ensure the process is killed when the job object is closed.
+    ''' 
+    ''' 6. **Wait for Process Exit**: After termination, the method waits for the process to exit using <see cref="ProcessWaitHandler.WaitForProcessExit"/>.
+    ''' </remarks>
+    ''' <para>API Functions Used:</para>
+    ''' <list>
+    '''     <item>
+    '''         <term>ProcessHandleValidatorUtility.ValidateProcessHandle</term>
+    '''         <description>
+    '''         Validates the process handle to ensure it is valid and has appropriate access rights for termination.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>ProcessUtility.GetProcessId</term>
+    '''         <description>
+    '''         Retrieves the process ID from the provided process handle.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>NativeMethods.CreateJobObjectA</term>
+    '''         <description>
+    '''         Creates a job object that can be used to manage and terminate processes.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>NativeMethods.AssignProcessToJobObject</term>
+    '''         <description>
+    '''         Assigns a process to the created job object.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>NativeMethods.SetInformationJobObject</term>
+    '''         <description>
+    '''         Sets job object information, including termination behavior when the job is closed.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>NativeMethods.TerminateJobObject</term>
+    '''         <description>
+    '''         Terminates the job object, which also terminates the process assigned to it.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>ProcessWaitHandler.WaitForProcessExit</term>
+    '''         <description>
+    '''         Waits for the target process to exit, checking periodically and handling necessary actions upon termination.
+    '''         </description>
+    '''     </item>
+    ''' </list>
+    ''' <para>Possible Error Codes:</para>
+    ''' <list>
+    '''     <item>
+    '''         <term>NtStatus.StatusSuccess</term>
+    '''         <description>
+    '''         Indicates that the operation completed successfully.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>NtStatus.StatusAccessDenied</term>
+    '''         <description>
+    '''         Indicates insufficient permissions to terminate the process or manage the job object.
+    '''         </description>
+    '''     </item>
+    '''     <item>
+    '''         <term>NtStatus.StatusObjectNameNotFound</term>
+    '''         <description>
+    '''         Indicates that the job object could not be created or located.
+    '''         </description>
+    '''     </item>
+    ''' </list>
     Friend Class JobObject
 
         ''' <summary>
@@ -19,22 +100,10 @@
             If Not TryGetProcessId(processHandle, processId, userPrompter) Then
                 Return False
             End If
-            Using jobHandle As SafeProcessHandle = CreateJobObject(processId, userPrompter)
-                If Not ValidateJobHandle(jobHandle, userPrompter) Then
-                    Return False
-                End If
-                Dim jobInfo = AllocateJobInfo(userPrompter)
-                If Not SetJobObjectInformation(jobHandle, jobInfo, userPrompter) Then
-                    MemoryManager.FreeMemoryIfNotNull(jobInfo)
-                    Return False
-                End If
-                If Not AssignProcessToJobObject(jobHandle, processId, userPrompter) Then
-                    Return False
-                End If
-                Dim isSuccessful As Boolean = TerminateJobObject(jobHandle, userPrompter)
-                MemoryManager.FreeMemoryIfNotNull(jobInfo)
-                Return isSuccessful
-            End Using
+            If Not CreateAndTerminateJobObject(processId, userPrompter) Then
+                Return False
+            End If
+            Return WaitForProcessToExit(processHandle, userPrompter)
         End Function
 
         ''' <summary>
@@ -44,13 +113,7 @@
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
         ''' <returns><c>True</c> if the process handle is valid; otherwise, <c>False</c>.</returns>
         Private Shared Function ValidateProcessHandle(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
-            Try
-                ProcessHandleValidator.ValidateProcessHandle(processHandle)
-                Return True
-            Catch ex As ArgumentException
-                userPrompter.Prompt("Invalid process handle.")
-                Return False
-            End Try
+            Return ProcessHandleValidatorUtility.ValidateProcessHandle(processHandle, userPrompter)
         End Function
 
         ''' <summary>
@@ -75,13 +138,7 @@
         ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
         ''' <returns><c>True</c> if the job handle is valid; otherwise, <c>False</c>.</returns>
         Private Shared Function ValidateJobHandle(jobHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
-            Try
-                ProcessHandleValidator.ValidateProcessHandle(jobHandle)
-                Return True
-            Catch ex As ArgumentException
-                userPrompter.Prompt("Invalid job handle.")
-                Return False
-            End Try
+            Return ProcessHandleValidatorUtility.ValidateProcessHandle(jobHandle, userPrompter)
         End Function
 
         ''' <summary>
@@ -177,6 +234,45 @@
             End If
             userPrompter.Prompt("Job object terminated successfully.")
             Return True
+        End Function
+
+        ''' <summary>
+        ''' Creates a job object, assigns the process to it, sets job object information, and terminates the job object.
+        ''' </summary>
+        ''' <param name="processId">The ID of the process to assign to the job object.</param>
+        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
+        ''' <returns><c>True</c> if the job object was successfully created, configured, and terminated; otherwise, <c>False</c>.</returns>
+        Private Shared Function CreateAndTerminateJobObject(processId As UInteger, userPrompter As IUserPrompter) As Boolean
+            Using jobHandle As SafeProcessHandle = CreateJobObject(processId, userPrompter)
+                If Not ValidateJobHandle(jobHandle, userPrompter) Then
+                    Return False
+                End If
+                Dim jobInfo = AllocateJobInfo(userPrompter)
+                If Not SetJobObjectInformation(jobHandle, jobInfo, userPrompter) Then
+                    MemoryManager.FreeMemoryIfNotNull(jobInfo)
+                    Return False
+                End If
+                If Not AssignProcessToJobObject(jobHandle, processId, userPrompter) Then
+                    Return False
+                End If
+                If Not TerminateJobObject(jobHandle, userPrompter) Then
+                    Return False
+                End If
+                MemoryManager.FreeMemoryIfNotNull(jobInfo)
+            End Using
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' Waits for the process to exit and handles the result.
+        ''' </summary>
+        ''' <param name="processHandle">The handle of the process to wait for.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        ''' <returns>True if the process exited successfully; otherwise, false.</returns>
+        Private Shared Function WaitForProcessToExit(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
+            Dim rawProcessHandle As IntPtr = processHandle.DangerousGetHandle()
+            Dim processExited As Boolean = ProcessWaitHandler.WaitForProcessExit(rawProcessHandle, userPrompter)
+            Return processExited
         End Function
     End Class
 End Namespace
