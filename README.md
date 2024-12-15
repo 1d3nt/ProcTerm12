@@ -45,3 +45,94 @@ Another kernel-mode function that varies between Windows XP and Vista. It also c
 
 ### **A Note on Handles**
 Obtaining a handle to the target process can sometimes be challenging due to restrictions or hooks placed by security software. If `OpenProcess` or `NtOpenProcess` fails, you can try using `DuplicateHandle` to elevate access rights. Alternatively, on Windows Vista and later, the Native API functions `NtGetNextProcess` and `NtGetNextThread` can help enumerate processes and threads with minimal interference.
+
+## PROJECT STRUCTURE
+
+```bash
+|-- Application
+|   |-- Interfaces
+|   |   |-- IAppRunner.vb
+|   |   +-- IServiceConfigurator.vb
+|   |-- AppRunner.vb
+|   +-- ServiceConfigurator.vb
+|
+|-- CoreServices
+|   |-- ProcessManagement
+|   |   |-- Interfaces
+|   |   |   +-- IProcessLauncher.vb
+|   |   +-- ProcessLauncher.vb
+|   +-- WindowsApiInterop
+|       |-- Enums
+|       |   |-- DuplicateOptions.vb
+|       |   |-- JobObjectInformationClass.vb
+|       |   |-- MemoryProtection.vb
+|       |   |-- NtStatus.vb
+|       |   |-- ObjectAttributeFlags.vb
+|       |   |-- ProcessAccessRights.vb
+|       |   +-- TerminationMethods.vb
+|       |-- Methods
+|       |   |-- MemoryManagement
+|       |   |   |-- HandleMemory.vb
+|       |   |   |-- MemoryManager.vb
+|       |   |   |-- ProcessHandleValidator.vb
+|       |   |   |-- SafeHandleWrapper.vb
+|       |   |   +-- SafeTokenHandle.vb
+|       |   |-- TerminationMethods
+|       |   |   |-- Interfaces
+|       |   |   |   +-- IProcessTerminator.vb
+|       |   |   |-- CreateRemoteThreadExit.vb
+|       |   |   |-- DebugObjectMethods.vb
+|       |   |   |-- DuplicateHandle.vb
+|       |   |   |-- JobObject.vb
+|       |   |   |-- NtTerminateProcess.vb
+|       |   |   |-- ProcessTerminator.vb
+|       |   |   |-- PspTerminateThreadByPointer.vb
+|       |   |   |-- PsTerminateProcess.vb
+|       |   |   |-- SetThreadContext.vb
+|       |   |   |-- TerminateThread.vb
+|       |   |   |-- VirtualAllocEx.vb
+|       |   |   |-- VirtualQueryExNoAccess.vb
+|       |   |   +-- WriteProcessMemory.vb
+|       |   |-- NativeMethods.vb
+|       |   +-- UnsafeNativeMethods.vb
+|       |-- Structs
+|       |   |-- ClientId.vb
+|       |   |-- IoCounters.vb
+|       |   |-- JobObjectBasicLimitInformation.vb
+|       |   |-- JobObjectExtendedLimitInformation.vb
+|       |   |-- JobObjectLimitFlags.vb
+|       |   |-- MemoryBasicInformation.vb
+|       |   |-- ModuleEntry32.vb
+|       |   |-- ObjectAttributes.vb
+|       |   +-- ThreadEntry32.vb
+|       +-- ExternDll.vb
+|
+|-- Utilities
+|   |-- ErrorHandling
+|   |   |-- Interfaces
+|   |   |   +-- IExitUtility.vb
+|   |   |-- ExitUtility.vb
+|   |   +-- Win32Error.vb
+|   |-- Interfaces
+|   |   |-- IConsoleClearer.vb
+|   |   |-- ITerminationMethodProvider.vb
+|   |   |-- IUserInputReader.vb
+|   |   +-- IUserPrompter.vb
+|   |-- ProcessUtilities
+|   |   |-- ProcessExitCodeRetriever.vb
+|   |   |-- ProcessHandleValidatorUtility.vb
+|   |   |-- ProcessUtility.vb
+|   |   +-- ProcessWaitHandler.vb
+|   |-- AsynchronousProcessor.vb
+|   |-- ConsoleClearer.vb
+|   |-- ObjectAttributesHelper.vb
+|   |-- TerminationMethodProvider.vb
+|   |-- TerminationStorage.vb
+|   |-- UserInputReader.vb
+|   |-- UserPrompter.vb
+|   +-- UserPrompterSingleton.vb
+|
+|-- GlobalAttributes.vb
+|-- ModuleEnumerator.vb
++-- Program.vb
+```
