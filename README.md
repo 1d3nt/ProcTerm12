@@ -46,7 +46,7 @@ Another kernel-mode function that varies between Windows XP and Vista. It also c
 ### **A Note on Handles**
 Obtaining a handle to the target process can sometimes be challenging due to restrictions or hooks placed by security software. If `OpenProcess` or `NtOpenProcess` fails, you can try using `DuplicateHandle` to elevate access rights. Alternatively, on Windows Vista and later, the Native API functions `NtGetNextProcess` and `NtGetNextThread` can help enumerate processes and threads with minimal interference.
 
-## PROJECT STRUCTURE
+## Project Structure
 
 ```bash
 |-- Application
