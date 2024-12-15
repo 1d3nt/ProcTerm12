@@ -1,17 +1,47 @@
-# **ProcTerm12**
+### **Techniques Explored**
 
-## **Overview**
-**ProcTerm12** is a fun, experimental project showcasing 12 unconventional ways to terminate a process using P/Invoke. This project demonstrates various advanced techniques for process termination, pushing beyond the standard `TerminateProcess` function to explore unique, lesser-known methods for interacting with Windows APIs and terminating processes.
+Below are the 10 methods implemented in **ProcTerm12** to terminate processes, excluding the two PS driver-based techniques due to their kernel-mode dependency.
 
-The goal of **ProcTerm12** is to demonstrate creative and technical process control using P/Invoke, covering both standard and non-standard approaches. The project highlights the power of Windows API interactions through a series of entertaining examples aimed at developers seeking deeper insights into low-level process management.
+#### **1. TerminateProcess or NtTerminateProcess**
+The most direct approach to terminating a process. This method involves opening a handle to the target process and calling `TerminateProcess`. To bypass user-mode hooks, the Native API equivalent, `NtTerminateProcess`, can be used for similar functionality with fewer obstructions.
 
-**ProcTerm12** explores techniques such as:
-- **NtTerminateProcess** for bypassing potential hooks
-- **CreateRemoteThread with ExitProcess** for remote execution
-- **Handle duplication and cleanup** to gradually remove process handles
-- **Virtual memory manipulation** and resource exhaustion techniques
-- And many more...
+#### **2. CreateRemoteThread with ExitProcess**
+This technique injects a thread into the target process that executes `ExitProcess`, effectively terminating the process. The address of `ExitProcess` can usually be found using `GetModuleHandle` and `GetProcAddress`. A remote thread is then created in the target process to execute this function.
 
-A key aspect of **ProcTerm12** is showcasing each method with detailed examples while adhering to good development principles. The project is designed with flexibility in mind, ensuring that developers can learn from the examples and expand upon them.
+#### **3. NtQuerySystemInformation or toolhelp32 with TerminateThread or NtTerminateThread**
+By iterating through all threads of the target process, each thread can be terminated individually using `TerminateThread` or its Native API counterpart, `NtTerminateThread`. This method ensures process termination by cutting off all active threads.
 
-This project draws inspiration from an article by the author of Process Hacker, detailing various methods to terminate a process. You can find the original article [here](https://web.archive.org/web/20130109025650/http://wj32.org/wp/2009/05/10/12-ways-to-terminate-a-process/).
+#### **4. NtQuerySystemInformation or toolhelp32 with SetThreadContext**
+This method modifies the execution context of each thread in the target process using `SetThreadContext`, pointing the instruction pointer (EIP) to `ExitProcess`. This forces the process to exit upon resuming thread execution.
+
+#### **5. DuplicateHandle**
+By iterating through possible handle values and using `DuplicateHandle` with specific options, the target process’s handles can be closed. This can disrupt complex applications reliant on active handles, although simpler applications may remain unaffected.
+
+#### **6. CreateJobObject, AssignProcessToJobObject, and TerminateJobObject**
+This approach creates a job object using `CreateJobObject`, assigns the target process to it via `AssignProcessToJobObject`, and then calls `TerminateJobObject`. It works only if the process isn’t already assigned to a job object and can bypass hooks in `NtAssignProcessToJobObject` and `NtTerminateJobObject`.
+
+#### **7. NtCreateDebugObject, NtDebugActiveProcess, and CloseHandle**
+Using a debug object created with `NtCreateDebugObject`, the target process can be debugged with `NtDebugActiveProcess`. Closing the debug object handle causes the kernel to terminate the debugged process. This method leverages kernel-level termination behavior triggered by handle closure.
+
+#### **8. VirtualQueryEx and VirtualProtectEx**
+This technique iterates through memory regions of the target process using `VirtualQueryEx` and modifies their protections to `PAGE_NOACCESS` using `VirtualProtectEx`. The target process crashes when attempting to execute code or access memory regions it no longer has permissions for.
+
+#### **9. VirtualQueryEx and WriteProcessMemory**
+By using `VirtualQueryEx` to iterate through memory regions of the target process and writing random or invalid data to these regions with `WriteProcessMemory`, this method causes the process to crash due to corrupted memory.
+
+#### **10. VirtualAllocEx**
+This method involves repeatedly calling `VirtualAllocEx` in the target process to reserve all available memory. Once the process exhausts its memory, it crashes when it cannot allocate more.
+
+---
+
+### **Omitted Techniques**
+#### **PsTerminateProcess**
+This is a kernel-mode function not exported by `ntoskrnl`. It requires scanning kernel memory to locate its signature and is incompatible with user-mode applications.
+
+#### **PspTerminateThreadByPointer**
+Another kernel-mode function that varies between Windows XP and Vista. It also cannot be used in user-mode applications and requires driver-level access.
+
+---
+
+### **A Note on Handles**
+Obtaining a handle to the target process can sometimes be challenging due to restrictions or hooks placed by security software. If `OpenProcess` or `NtOpenProcess` fails, you can try using `DuplicateHandle` to elevate access rights. Alternatively, on Windows Vista and later, the Native API functions `NtGetNextProcess` and `NtGetNextThread` can help enumerate processes and threads with minimal interference.

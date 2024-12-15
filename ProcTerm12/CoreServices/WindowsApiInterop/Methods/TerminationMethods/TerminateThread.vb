@@ -71,23 +71,20 @@
             If Not TryGetProcessId(threadHandle, processId, userPrompter) Then
                 Return False
             End If
-            Return TerminateAllThreads(processId, userPrompter)
+            If Not TerminateAllThreads(processId, userPrompter) Then
+                Return False
+            End If
+            Return WaitForProcessToExit(threadHandle, userPrompter)
         End Function
 
         ''' <summary>
-        ''' Validates the process handle and prompts the user if invalid.
+        ''' Validates the provided process handle.
         ''' </summary>
-        ''' <param name="processHandle">The handle to validate.</param>
-        ''' <param name="userPrompter">The user prompter for interaction.</param>
-        ''' <returns>True if the handle is valid; otherwise, false.</returns>
+        ''' <param name="processHandle">The handle of the process to validate.</param>
+        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
+        ''' <returns><c>True</c> if the process handle is valid; otherwise, <c>False</c>.</returns>
         Private Shared Function ValidateProcessHandle(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
-            Try
-                ProcessHandleValidator.ValidateProcessHandle(processHandle)
-                Return True
-            Catch ex As ArgumentException
-                userPrompter.Prompt("Invalid process handle.")
-                Return False
-            End Try
+            Return ProcessHandleValidatorUtility.ValidateProcessHandle(processHandle, userPrompter)
         End Function
 
         ''' <summary>
@@ -98,7 +95,7 @@
         ''' <returns><c>True</c> if the process ID was retrieved successfully; otherwise, <c>False</c>.</returns>
         Private Shared Function TryGetProcessId(processHandle As SafeProcessHandle, ByRef processId As UInteger, userPrompter As IUserPrompter) As Boolean
             processId = ProcessUtility.GetProcessId(processHandle, userPrompter)
-            If processId = 0 Then
+            If processId = NativeMethods.InvalidProcessId Then
                 userPrompter.Prompt("Failed to retrieve process ID.")
                 Return False
             End If
@@ -141,6 +138,18 @@
                 End If
                 Return NativeMethods.TerminateThread(currentThreadHandle, 0)
             End Using
+        End Function
+
+        ''' <summary>
+        ''' Waits for the process to exit and handles the result.
+        ''' </summary>
+        ''' <param name="processHandle">The handle of the process to wait for.</param>
+        ''' <param name="userPrompter">The user prompter for interaction.</param>
+        ''' <returns>True if the process exited successfully; otherwise, false.</returns>
+        Private Shared Function WaitForProcessToExit(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
+            Dim rawProcessHandle As IntPtr = processHandle.DangerousGetHandle()
+            Dim processExited As Boolean = ProcessWaitHandler.WaitForProcessExit(rawProcessHandle, userPrompter)
+            Return processExited
         End Function
     End Class
 End Namespace
