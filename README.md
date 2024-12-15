@@ -1,6 +1,19 @@
+# **ProcTerm12**
+
+## **Overview**
+**ProcTerm12** is a fun, experimental project that demonstrates 12 unconventional ways to terminate a process using P/Invoke. This project is not a full-fledged application and is intentionally designed without strict adherence to usual development principles such as single responsibility or dependency injection. Instead, it serves as an educational and entertaining exploration of advanced process termination techniques.
+
+### **Key Points to Note**
+- **ProcTerm12** is **not** a production-ready tool. 
+- The project’s classes and methods are intentionally focused on demonstrating individual techniques and do **not** follow typical software engineering standards like single responsibility or dependency injection.
+- The examples provided are crafted for learning and exploration rather than robustness or scalability.
+
+### **Purpose**
+The primary goal of **ProcTerm12** is to explore creative and technical process control using P/Invoke, delving into both standard and non-standard approaches. This project showcases the power and flexibility of Windows API interactions, providing developers with deeper insights into low-level process management through a series of entertaining examples.
+
 ### **Techniques Explored**
 
-Below are the 10 methods implemented in **ProcTerm12** to terminate processes, excluding the two PS driver-based techniques due to their kernel-mode dependency.
+Below are the 12 methods implemented in **ProcTerm12** to terminate processes, excluding the two PS driver-based techniques due to their kernel-mode dependency.
 
 #### **1. TerminateProcess or NtTerminateProcess**
 The most direct approach to terminating a process. This method involves opening a handle to the target process and calling `TerminateProcess`. To bypass user-mode hooks, the Native API equivalent, `NtTerminateProcess`, can be used for similar functionality with fewer obstructions.
@@ -136,3 +149,11 @@ Obtaining a handle to the target process can sometimes be challenging due to res
 |-- ModuleEnumerator.vb
 +-- Program.vb
 ```
+
+### **Inspiration**
+**ProcTerm12** draws inspiration from the article written by the author of Process Hacker, which details various methods to terminate a process. This article is an excellent resource for those interested in low-level Windows process management. You can access the original article [here](https://web.archive.org/web/20130109025650/http://wj32.org/wp/2009/05/10/12-ways-to-terminate-a-process/).
+
+---
+
+### **Disclaimer**
+This project is meant for **educational purposes only**. Some of the methods demonstrated may involve behaviors that could disrupt system stability or interact with processes in unconventional ways. Developers are encouraged to use this knowledge responsibly and solely for legitimate and ethical purposes.
