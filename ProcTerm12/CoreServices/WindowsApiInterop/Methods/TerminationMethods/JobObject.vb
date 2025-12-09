@@ -87,11 +87,31 @@
     Friend Class JobObject
 
         ''' <summary>
-        ''' Terminates a process by creating a job object and assigning the process to it.
+        ''' Terminates a process by creating a job object, assigning the process to it, and managing the termination process.
         ''' </summary>
-        ''' <param name="processHandle">A <see cref="SafeProcessHandle"/> representing the handle of the process to be terminated.</param>
-        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
-        ''' <returns><c>True</c> if the process was successfully terminated; otherwise, <c>False</c>.</returns>
+        ''' <param name="processHandle">
+        ''' A <see cref="SafeProcessHandle"/> representing the handle of the process to be terminated. 
+        ''' This handle must have the necessary access rights to allow termination operations.
+        ''' </param>
+        ''' <param name="userPrompter">
+        ''' An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation. 
+        ''' This allows the method to notify the user of any errors or progress during the termination process.
+        ''' </param>
+        ''' <returns>
+        ''' <c>True</c> if the process was successfully terminated; otherwise, <c>False</c>.
+        ''' The method returns <c>False</c> if any step in the termination process fails, such as validating the process handle, 
+        ''' retrieving the process ID, creating and configuring the job object, or waiting for the process to exit.
+        ''' </returns>
+        ''' <remarks>
+        ''' This method performs the following steps to terminate the process:
+        ''' 1. Validates the provided process handle to ensure it is valid and has the required access rights.
+        ''' 2. Retrieves the process ID from the provided process handle.
+        ''' 3. Creates a job object, assigns the process to it, sets job object information, and terminates the job object 
+        '''    using the <see cref="CreateAndTerminateJobObject"/> method.
+        ''' 4. Waits for the process to exit using the <see cref="WaitForProcessToExit"/> method to ensure the termination is complete.
+        ''' 
+        ''' If any step fails, the method ensures that resources are cleaned up appropriately and returns <c>False</c>.
+        ''' </remarks>
         Friend Shared Function Kill(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             If Not ValidateProcessHandle(processHandle, userPrompter) Then
                 Return False
@@ -239,9 +259,30 @@
         ''' <summary>
         ''' Creates a job object, assigns the process to it, sets job object information, and terminates the job object.
         ''' </summary>
-        ''' <param name="processId">The ID of the process to assign to the job object.</param>
-        ''' <param name="userPrompter">An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.</param>
-        ''' <returns><c>True</c> if the job object was successfully created, configured, and terminated; otherwise, <c>False</c>.</returns>
+        ''' <param name="processId">
+        ''' The ID of the process to assign to the job object. This is used to identify the process that will be 
+        ''' managed and terminated by the job object.
+        ''' </param>
+        ''' <param name="userPrompter">
+        ''' An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation.
+        ''' This allows the method to notify the user of any errors or progress during the operation.
+        ''' </param>
+        ''' <returns>
+        ''' <c>True</c> if the job object was successfully created, configured, and terminated; otherwise, <c>False</c>.
+        ''' The method returns <c>False</c> if any step in the process fails.
+        ''' </returns>
+        ''' <remarks>
+        ''' This method performs the following steps:
+        ''' 1. Creates a job object using the specified process ID.
+        ''' 2. Validates the created job object handle to ensure it is valid.
+        ''' 3. Allocates memory for job object information, which is used to configure the job object.
+        ''' 4. Sets the job object information to configure the job object with specific limits (e.g., terminate the process when the job object is closed).
+        ''' 5. Assigns the process to the job object, effectively associating the process with the job object for management.
+        ''' 6. Terminates the job object, which also terminates the associated process.
+        ''' 7. Frees any allocated memory for job object information after it is no longer needed.
+        ''' 
+        ''' If any step fails, the method ensures that allocated memory is freed before returning <c>False</c>.
+        ''' </remarks>
         Private Shared Function CreateAndTerminateJobObject(processId As UInteger, userPrompter As IUserPrompter) As Boolean
             Using jobHandle As SafeProcessHandle = CreateJobObject(processId, userPrompter)
                 If Not ValidateJobHandle(jobHandle, userPrompter) Then
@@ -249,19 +290,29 @@
                 End If
                 Dim jobInfo = AllocateJobInfo(userPrompter)
                 If Not SetJobObjectInformation(jobHandle, jobInfo, userPrompter) Then
-                    MemoryManager.FreeMemoryIfNotNull(jobInfo)
+                    FreeMemoryIfNotNull(jobInfo)
                     Return False
                 End If
                 If Not AssignProcessToJobObject(jobHandle, processId, userPrompter) Then
+                    FreeMemoryIfNotNull(jobInfo)
                     Return False
                 End If
                 If Not TerminateJobObject(jobHandle, userPrompter) Then
+                    FreeMemoryIfNotNull(jobInfo)
                     Return False
                 End If
-                MemoryManager.FreeMemoryIfNotNull(jobInfo)
+                FreeMemoryIfNotNull(jobInfo)
             End Using
             Return True
         End Function
+
+        ''' <summary>
+        ''' Frees allocated memory.
+        ''' </summary>
+        ''' <param name="memoryPointer">The pointer to the allocated memory to be freed.</param>
+        Private Shared Sub FreeMemoryIfNotNull(memoryPointer As IntPtr)
+            MemoryManager.FreeMemoryIfNotNull(memoryPointer)
+        End Sub
 
         ''' <summary>
         ''' Waits for the process to exit and handles the result.

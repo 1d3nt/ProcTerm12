@@ -76,9 +76,30 @@
         ''' <summary>
         ''' Terminates a process using the DebugObjectMethods method.
         ''' </summary>
-        ''' <param name="processHandle">The handle of the process to terminate.</param>
-        ''' <param name="userPrompter">The user prompter for interaction.</param>
-        ''' <returns>True if the process was terminated successfully; otherwise, false.</returns>
+        ''' <param name="processHandle">
+        ''' The handle of the process to terminate. This handle must have the necessary access rights 
+        ''' to allow debugging and termination operations.
+        ''' </param>
+        ''' <param name="userPrompter">
+        ''' An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation. 
+        ''' This allows the method to notify the user of any errors or progress during the termination process.
+        ''' </param>
+        ''' <returns>
+        ''' <c>True</c> if the process was terminated successfully; otherwise, <c>False</c>.
+        ''' The method returns <c>False</c> if any step in the termination process fails, such as validating the process handle, 
+        ''' initializing object attributes, creating and attaching the debug object, or waiting for the process to exit.
+        ''' </returns>
+        ''' <remarks>
+        ''' This method performs the following steps to terminate the process:
+        ''' 1. Validates the provided process handle to ensure it is valid and has the required access rights.
+        ''' 2. Initializes object attributes required for creating the debug object.
+        ''' 3. Creates a debug object, attaches it to the process, and manages the debugging session using the 
+        '''    <see cref="CreateAndAttachDebugObject"/> method.
+        ''' 4. Waits for the process to exit using the <see cref="WaitForProcessToExit"/> method to ensure the termination is complete.
+        ''' 
+        ''' If any step fails, the method ensures that resources are cleaned up appropriately and returns <c>False</c>.
+        ''' </remarks>
+
         Friend Shared Function Kill(processHandle As SafeProcessHandle, userPrompter As IUserPrompter) As Boolean
             If Not ValidateProcessHandle(processHandle, userPrompter) Then
                 Return False
@@ -153,10 +174,32 @@
         ''' <summary>
         ''' Creates and manages a debug object, attaching it to the specified process for debugging.
         ''' </summary>
-        ''' <param name="processHandle">The handle of the process to attach to.</param>
-        ''' <param name="objectAttributes">The object attributes for the debug object.</param>
-        ''' <param name="userPrompter">The user prompter for interaction.</param>
-        ''' <returns>True if the debug object was successfully created and attached; otherwise, false.</returns>
+        ''' <param name="processHandle">
+        ''' The handle of the process to attach to. This handle must have the necessary access rights 
+        ''' to allow debugging operations.
+        ''' </param>
+        ''' <param name="objectAttributes">
+        ''' The object attributes for the debug object. These attributes define the properties and behavior 
+        ''' of the debug object being created.
+        ''' </param>
+        ''' <param name="userPrompter">
+        ''' An instance of <see cref="IUserPrompter"/> used for prompting user interactions during the operation. 
+        ''' This allows the method to notify the user of any errors or progress during the debugging process.
+        ''' </param>
+        ''' <returns>
+        ''' <c>True</c> if the debug object was successfully created and attached to the process; otherwise, <c>False</c>.
+        ''' The method returns <c>False</c> if any step in the process fails, such as creating the debug object, 
+        ''' validating the debug object handle, or attaching the debug object to the process.
+        ''' </returns>
+        ''' <remarks>
+        ''' This method performs the following steps:
+        ''' 1. Creates a debug object using the specified object attributes.
+        ''' 2. Validates the created debug object handle to ensure it is valid and usable.
+        ''' 3. Attaches the debug object to the specified process for debugging operations.
+        ''' 
+        ''' If any step fails, the method ensures that resources are cleaned up appropriately and returns <c>False</c>.
+        ''' </remarks>
+
         Private Shared Function CreateAndAttachDebugObject(processHandle As SafeProcessHandle, objectAttributes As ObjectAttributes, userPrompter As IUserPrompter) As Boolean
             Using debugObjectHandle As SafeProcessHandle = CreateDebugObject(objectAttributes, userPrompter)
                 If Not ValidateProcessHandle(debugObjectHandle, userPrompter) Then

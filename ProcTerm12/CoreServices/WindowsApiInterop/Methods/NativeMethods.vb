@@ -58,15 +58,6 @@
         Friend Const WaitFailed As UInteger = &HFFFFFFFFUI
 
         ''' <summary>
-        ''' Specifies the access right to terminate a thread.
-        ''' </summary>
-        ''' <remarks>
-        ''' This constant is used with thread-related functions to specify the right to terminate a thread.
-        ''' For more information, see <see cref="TerminateThread"/>.
-        ''' </remarks>
-        Friend Const ThreadTerminate As Integer = &H1
-
-        ''' <summary>
         ''' Includes all threads in the system in a snapshot.
         ''' </summary>
         ''' <remarks>
@@ -1147,7 +1138,7 @@
         ''' </remarks>
 
 
-        <DllImport(ExternDll.Kernel32, SetLastError:=True, CharSet:=CharSet.Unicode, EntryPoint:="Module32FirstW")>
+        <DllImport(ExternDll.Kernel32, CharSet:=CharSet.Unicode, EntryPoint:="Module32FirstW", SetLastError:=True)>
         Friend Shared Function Module32First(
             <[In]> hSnapshot As IntPtr,
              ByRef lpme As ModuleEntry32
@@ -1200,6 +1191,118 @@
             <[In]> hSnapshot As IntPtr,
             ByRef lpme As ModuleEntry32
         ) As <MarshalAs(UnmanagedType.Bool)> Boolean
+        End Function
+
+        ''' <summary>
+        ''' Sets the context of a specified thread.
+        ''' </summary>
+        ''' <param name="hThread">
+        ''' A handle to the thread whose context is being set. The handle must have the <c>THREAD_SET_CONTEXT</c> access right.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="lpContext">
+        ''' A pointer to a <see cref="CONTEXT64"/> structure that contains the context information for the thread.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is <c>True</c>. If the function fails, the return value is <c>False</c>.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-setthreadcontext">SetThreadContext Documentation</see>.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' BOOL SetThreadContext(
+        '''   [in] HANDLE hThread,
+        '''   [in] PCONTEXT lpContext
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function SetThreadContext(
+            <[In]> hThread As IntPtr,
+            <[In]> ByRef lpContext As Context64
+        ) As Boolean
+        End Function
+
+        ''' <summary>
+        ''' Suspends the execution of a specified thread.
+        ''' </summary>
+        ''' <param name="hThread">
+        ''' A handle to the thread to be suspended. The handle must have the <c>THREAD_SUSPEND_RESUME</c> access right.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' The return value is the previous suspend count of the thread. If the function fails, the return value is <c>-1</c>.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-suspendthread">SuspendThread Documentation</see>.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' DWORD SuspendThread(
+        '''   [in] HANDLE hThread
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function SuspendThread(
+            <[In]> hThread As IntPtr
+        ) As UInteger
+        End Function
+
+        ''' <summary>
+        ''' Resumes the execution of a suspended thread.
+        ''' </summary>
+        ''' <param name="hThread">
+        ''' A handle to the thread to be resumed. The handle must have the <c>THREAD_SUSPEND_RESUME</c> access right.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' The return value is the previous suspend count of the thread. If the function fails, the return value is <c>-1</c>.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-resumethread">ResumeThread Documentation</see>.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' DWORD ResumeThread(
+        '''   [in] HANDLE hThread
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function ResumeThread(
+            <[In]> hThread As IntPtr
+        ) As UInteger
+        End Function
+
+        ''' <summary>
+        ''' Retrieves the context of a specified thread.
+        ''' </summary>
+        ''' <param name="hThread">
+        ''' A handle to the thread whose context is being retrieved. The handle must have the <c>THREAD_GET_CONTEXT</c> access right.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <param name="lpContext">
+        ''' A pointer to a <see cref="CONTEXT64"/> structure that will receive the thread's context information.
+        ''' This parameter is passed with the <c>[In]</c> attribute.
+        ''' </param>
+        ''' <returns>
+        ''' If the function succeeds, the return value is <c>True</c>. If the function fails, the return value is <c>False</c>.
+        ''' </returns>
+        ''' <remarks>
+        ''' For more details, refer to the <see href="https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-getthreadcontext">GetThreadContext Documentation</see>.
+        ''' The function signature in C++ is:
+        ''' <code>
+        ''' BOOL GetThreadContext(
+        '''   [in] HANDLE hThread,
+        '''   [in] LPCONTEXT lpContext
+        ''' );
+        ''' </code>
+        ''' </remarks>
+        <DllImport(ExternDll.Kernel32, SetLastError:=True)>
+        Friend Shared Function GetThreadContext(
+            <[In]> hThread As IntPtr,
+            <[In]> ByRef lpContext As Context64
+        ) As Boolean
         End Function
     End Class
 End Namespace

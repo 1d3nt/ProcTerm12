@@ -78,7 +78,7 @@
     ''' 
     ''' Developers should account for these factors when analyzing or relying on the exit codes of processes terminated using this technique.
     ''' </remarks>
-    Friend Class CreateRemoteThreadExit
+    Friend MustInherit Class CreateRemoteThreadExit
 
         ''' <summary>
         ''' Represents the error code for access denied.

@@ -40,10 +40,12 @@ Using a debug object created with `NtCreateDebugObject`, the target process can 
 This technique iterates through memory regions of the target process using `VirtualQueryEx` and modifies their protections to `PAGE_NOACCESS` using `VirtualProtectEx`. The target process crashes when attempting to execute code or access memory regions it no longer has permissions for.
 
 #### **9. VirtualQueryEx and WriteProcessMemory**
-By using `VirtualQueryEx` to iterate through memory regions of the target process and writing random or invalid data to these regions with `WriteProcessMemory`, this method causes the process to crash due to corrupted memory.
+By using `VirtualQueryEx` to iterate through memory regions of the target process and writing random or invalid data to these regions with `WriteProcessMemory`, this method causes the process to crash due to corrupted memory.  
+**Note:** This technique is included for historical purposes and to mirror the original article, but it will fail on modern versions of Windows past Vista/7 due to stricter memory protection and process isolation.
 
 #### **10. VirtualAllocEx**
-This method involves repeatedly calling `VirtualAllocEx` in the target process to reserve all available memory. Once the process exhausts its memory, it crashes when it cannot allocate more.
+This method involves repeatedly calling `VirtualAllocEx` in the target process to reserve all available memory. Once the process exhausts its memory, it crashes when it cannot allocate more.  
+**Note:** This method is also included for historical completeness and demonstration, but it will fail on Windows versions beyond XP/Vista because modern memory management and address space randomization prevent this from working reliably.
 
 ---
 

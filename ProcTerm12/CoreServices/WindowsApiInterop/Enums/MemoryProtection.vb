@@ -57,7 +57,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_EXECUTE 0x10</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageExecute = &H10
 
         ''' <summary>
@@ -65,7 +68,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_EXECUTE_READ 0x20</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageExecuteRead = &H20
 
         ''' <summary>
@@ -73,7 +79,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_EXECUTE_READWRITE 0x40</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageExecuteReadWrite = &H40
 
         ''' <summary>
@@ -81,7 +90,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_EXECUTE_WRITE_COPY 0x80</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageExecuteWriteCopy = &H80
 
         ''' <summary>
@@ -89,7 +101,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_READONLY 0x02</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageReadOnly = &H2
 
         ''' <summary>
@@ -97,7 +112,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_READWRITE 0x04</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageReadWrite = &H4
 
         ''' <summary>
@@ -105,7 +123,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_WRITECOPY 0x08</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageWriteCopy = &H8
 
         ''' <summary>
@@ -113,7 +134,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_GUARD 0x100</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageGuard = &H100
 
         ''' <summary>
@@ -121,7 +145,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_NOCACHE 0x200</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageNoCache = &H200
 
         ''' <summary>
@@ -129,7 +156,10 @@
         ''' </summary>
         ''' <remarks>
         ''' In C++: <code>#define PAGE_WRITECOMBINE 0x400</code>
+        ''' This member is marked with <see cref="UsedImplicitlyAttribute"/> because it is not referenced directly 
+        ''' in the current code, but is included for completeness and potential future use.
         ''' </remarks>
+        <UsedImplicitly>
         PageWriteCombine = &H400
     End Enum
 End Namespace

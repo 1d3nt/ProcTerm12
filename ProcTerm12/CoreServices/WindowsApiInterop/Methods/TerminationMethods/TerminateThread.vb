@@ -132,7 +132,7 @@
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>Returns <c>True</c> if the thread was successfully terminated; otherwise, returns <c>False</c>.</returns>
         Private Shared Function TerminateThreadById(threadId As UInteger, userPrompter As IUserPrompter) As Boolean
-            Using currentThreadHandle As New SafeProcessHandle(NativeMethods.OpenThread(NativeMethods.ThreadTerminate, False, threadId), True)
+            Using currentThreadHandle As New SafeProcessHandle(NativeMethods.OpenThread(ThreadAccessRights.ThreadTerminate, False, threadId), True)
                 If Not ValidateProcessHandle(currentThreadHandle, userPrompter) Then
                     Return False
                 End If

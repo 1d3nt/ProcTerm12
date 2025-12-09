@@ -101,7 +101,7 @@
     '''     <item><description><c>STATUS_OBJECT_TYPE_MISMATCH</c> - The object is not a valid process, which may occur after a crash or cleanup.</description></item>
     ''' </list>
     ''' </returns>
-    Friend Class DuplicateHandle
+    Friend MustInherit Class DuplicateHandle
 
         ''' <summary>
         ''' Represents the maximum handle value used in the <see cref="DuplicateOptions.DuplicateCloseSource"/> operation.
@@ -400,7 +400,7 @@
         ''' <param name="sourceHandle">The handle to attempt to close.</param>
         ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns><c>True</c> if the handle was closed successfully; otherwise, <c>False</c>.</returns>
-        Friend Shared Function CloseHandle(handle As SafeProcessHandle, sourceHandle As IntPtr, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function CloseHandle(handle As SafeProcessHandle, sourceHandle As IntPtr, userPrompter As IUserPrompter) As Boolean
             Dim targetHandle = NativeMethods.NullHandleValue
             Dim success = DuplicateHandleWithSameAccess(handle, sourceHandle, targetHandle)
             If success = NtStatus.StatusSuccess AndAlso Not Equals(targetHandle, NativeMethods.NullHandleValue) Then
@@ -470,7 +470,7 @@
         ''' before the final process check. The actual implementation of the process check logic 
         ''' should be included to determine the process status.
         ''' </remarks>
-        Friend Shared Function IfAllElseFailsFinalProcessIsAliveCheck(processId As UInteger, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function IfAllElseFailsFinalProcessIsAliveCheck(processId As UInteger, userPrompter As IUserPrompter) As Boolean
             DelayBeforeCheckingProcessAlive(userPrompter).GetAwaiter().GetResult()
             Dim isAlive As Boolean = ProcessUtility.IsProcessRunning(processId)
             Return isAlive

@@ -23,7 +23,7 @@
             End If
             Dim isSuccess As Boolean
             Try
-                If ProtectMemoryRegion(processHandle, handle, userPrompter) Then
+                If ProtectMemoryRegion(processHandle, handle) Then
                     isSuccess = WaitForProcessTermination(handle, userPrompter)
                 End If
             Finally
@@ -54,9 +54,8 @@
         ''' </summary>
         ''' <param name="processHandle">The handle of the process.</param>
         ''' <param name="handle">The handle of the snapshot.</param>
-        ''' <param name="userPrompter">The user prompter for interaction.</param>
         ''' <returns>True if the memory region was protected successfully; otherwise, false.</returns>
-        Private Shared Function ProtectMemoryRegion(processHandle As SafeProcessHandle, handle As IntPtr, userPrompter As IUserPrompter) As Boolean
+        Private Shared Function ProtectMemoryRegion(processHandle As SafeProcessHandle, handle As IntPtr) As Boolean
             Dim moduleEntry As New ModuleEntry32 With {.dwSize = Marshal.SizeOf(GetType(ModuleEntry32))}
             If Not NativeMethods.Module32First(handle, moduleEntry) Then
                 Dim lastError = Win32Error.GetLastPInvokeError()
