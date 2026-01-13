@@ -6,16 +6,16 @@
     ''' <remarks>
     ''' This structure corresponds to the <c>MODULEENTRY32</c> structure in the Windows API.
     ''' <list type="bullet">
-    '''     <item><description><see cref="ModuleEntry32.Size"/>: The size of the structure, in bytes. In C++: <code>DWORD dwSize;</code></description></item>
-    '''     <item><description><see cref="ModuleEntry32.ModuleID"/>: The module ID for the module. In C++: <code>DWORD th32ModuleID;</code></description></item>
-    '''     <item><description><see cref="ModuleEntry32.ProcessID"/>: The process ID for the module. In C++: <code>DWORD th32ProcessID;</code></description></item>
-    '''     <item><description><see cref="ModuleEntry32.GlobalUsageCount"/>: The global usage count of the module. In C++: <code>DWORD GlblcntUsage;</code></description></item>
-    '''     <item><description><see cref="ModuleEntry32.ProcessUsageCount"/>: The process usage count of the module. In C++: <code>DWORD ProccntUsage;</code></description></item>
-    '''     <item><description><see cref="ModuleEntry32.BaseAddress"/>: The base address of the module in the process's address space. In C++: <code>BYTE* modBaseAddr;</code></description></item>
-    '''     <item><description><see cref="ModuleEntry32.ModuleSize"/>: The size of the module, in bytes. In C++: <code>DWORD modBaseSize;</code></description></item>
-    '''     <item><description><see cref="ModuleEntry32.ModuleHandle"/>: The handle to the module. In C++: <code>HMODULE hModule;</code></description></item>
-    '''     <item><description><see cref="ModuleEntry32.ModuleName"/>: The name of the module. In C++: <code>char szModule[MAX_MODULE_NAME32 + 1];</code></description></item>
-    '''     <item><description><see cref="ModuleEntry32.ExePath"/>: The path of the executable file for the module. In C++: <code>char szExePath[MAX_PATH];</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.dwSize"/>: The size of the structure, in bytes. In C++: <code>DWORD dwSize;</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.th32ModuleID"/>: The module ID for the module. In C++: <code>DWORD th32ModuleID;</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.th32ProcessID"/>: The process ID for the module. In C++: <code>DWORD th32ProcessID;</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.GlblcntUsage"/>: The global usage count of the module. In C++: <code>DWORD GlblcntUsage;</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.ProccntUsage"/>: The process usage count of the module. In C++: <code>DWORD ProccntUsage;</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.modBaseAddr"/>: The base address of the module in the process's address space. In C++: <code>BYTE* modBaseAddr;</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.szModule"/>: The size of the module, in bytes. In C++: <code>DWORD modBaseSize;</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.hModule"/>: The handle to the module. In C++: <code>HMODULE hModule;</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.szModule"/>: The name of the module. In C++: <code>char szModule[MAX_MODULE_NAME32 + 1];</code></description></item>
+    '''     <item><description><see cref="ModuleEntry32.szModule"/>: The path of the executable file for the module. In C++: <code>char szExePath[MAX_PATH];</code></description></item>
     ''' </list>
     ''' 
     ''' For further details, see:

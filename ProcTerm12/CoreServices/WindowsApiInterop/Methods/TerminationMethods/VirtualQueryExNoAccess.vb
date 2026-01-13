@@ -1,9 +1,96 @@
 ﻿Namespace CoreServices.WindowsApiInterop.Methods.TerminationMethods
 
-    ''' <summary>
-    ''' Provides methods to terminate processes using the VirtualQueryExNoAccess method.
-    ''' </summary>
-    Friend Class VirtualQueryExNoAccess
+''' <summary>
+''' The <see cref="VirtualQueryExNoAccess"/> class provides a method for terminating a process by protecting its memory regions 
+''' using <see cref="NativeMethods.VirtualQueryEx"/> and <see cref="NativeMethods.VirtualProtectEx"/> to set page access to <see cref="MemoryProtection.PageNoAccess"/>. 
+''' This method attempts to crash the process by making its memory inaccessible.
+''' </summary>
+''' <remarks>
+''' This technique involves the following steps:
+''' 1. **Validate Process Handle**: Ensures that the provided <see cref="SafeProcessHandle"/> is valid using 
+'''    <see cref="ProcessHandleValidator.ValidateProcessHandle"/>.
+'''
+''' 2. **Retrieve Process ID**: Extracts the process ID from the handle using <see cref="ProcessUtility.GetProcessId"/>.
+'''
+''' 3. **Create Snapshot**: A snapshot of the process modules is created using 
+'''    <see cref="NativeMethods.CreateToolhelp32Snapshot"/> to iterate over memory regions.
+'''
+''' 4. **Protect Memory Region**: The memory regions of each module are protected using 
+'''    <see cref="NativeMethods.VirtualProtectEx"/>, setting them to <see cref="MemoryProtection.PageNoAccess"/>. This step attempts to corrupt
+'''    the process memory and trigger a crash.
+'''
+''' 5. **Wait for Process Termination**: The method waits for the process to exit using 
+'''    <see cref="UnsafeNativeMethods.NtWaitForSingleObject"/> and checks the exit code with <see cref="NativeMethods.GetExitCodeProcess"/>.
+'''
+''' 6. **Final Process Check**: If the process has not exited, a final check is performed to determine if the process is still running 
+'''    using <see cref="ProcessUtility.IsProcessRunning"/>. A delay is introduced prior to this check to allow the system to stabilize.
+'''
+''' 7. **Cleanup**: Any handles opened for snapshots are safely closed using <see cref="HandleManager.CloseHandleIfNotNull"/>.
+''' </remarks>
+''' <para>API / PInvoke Functions Used:</para>
+''' <list>
+'''     <item>
+'''         <term><see cref="ProcessHandleValidator.ValidateProcessHandle"/></term>
+'''         <description>Validates the process handle to ensure it is valid and accessible.</description>
+'''     </item>
+'''     <item>
+'''         <term><see cref="ProcessUtility.GetProcessId"/></term>
+'''         <description>Retrieves the process ID from a safe handle.</description>
+'''     </item>
+'''     <item>
+'''         <term><see cref="NativeMethods.CreateToolhelp32Snapshot"/></term>
+'''         <description>Creates a snapshot of all modules and threads in the target process.</description>
+'''     </item>
+'''     <item>
+'''         <term><see cref="NativeMethods.Module32First"/></term>
+'''         <description>Retrieves information about the first module in the snapshot for memory protection.</description>
+'''     </item>
+'''     <item>
+'''         <term><see cref="NativeMethods.VirtualProtectEx"/></term>
+'''         <description>Changes the memory protection of the module region to <see cref="MemoryProtection.PageNoAccess"/>, effectively blocking access.</description>
+'''     </item>
+'''     <item>
+'''         <term><see cref="UnsafeNativeMethods.NtWaitForSingleObject"/></term>
+'''         <description>Waits for the process to enter a signaled state (termination).</description>
+'''     </item>
+'''     <item>
+'''         <term><see cref="NativeMethods.GetExitCodeProcess"/></term>
+'''         <description>Retrieves the exit code of the process to determine if it has terminated.</description>
+'''     </item>
+'''     <item>
+'''         <term><see cref="ProcessUtility.IsProcessRunning"/></term>
+'''         <description>Performs a final check to see if the process is still running.</description>
+'''     </item>
+'''     <item>
+'''         <term><see cref="HandleManager.CloseHandleIfNotNull"/></term>
+'''         <description>Safely closes any open handles created during snapshotting.</description>
+'''     </item>
+''' </list>
+''' <para>Possible Error Codes / Conditions:</para>
+''' <list>
+'''     <item>
+'''         <term>Win32Error</term>
+'''         <description>Occurs if the snapshot or module retrieval fails.</description>
+'''     </item>
+'''     <item>
+'''         <term>NullReferenceException</term>
+'''         <description>Thrown if the handle returned by <see cref="NativeMethods.CreateToolhelp32Snapshot"/> is null or invalid.</description>
+'''     </item>
+'''     <item>
+'''         <term>Exception</term>
+'''         <description>Thrown if memory protection fails using <see cref="NativeMethods.VirtualProtectEx"/>.</description>
+'''     </item>
+''' </list>
+''' <para>Notes:</para>
+''' <list type="bullet">
+'''     <item>
+'''         This technique works on modern Windows versions, including Windows 11, but its reliability may vary depending on process protections and access rights.
+'''     </item>
+'''     <item>
+'''         The method is included for completeness and to follow the historical article reference.
+'''     </item>
+''' </list>
+Friend Class VirtualQueryExNoAccess
 
         ''' <summary>
         ''' Terminates a process using the VirtualQueryExNoAccess method.

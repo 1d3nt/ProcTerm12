@@ -167,32 +167,32 @@ Namespace CoreServices.WindowsApiInterop.Methods.TerminationMethods
         ''' <summary>
         ''' Memory allocation flag for reserving address space.
         ''' </summary>
-        Private Const MEM_RESERVE As UInteger = &H2000UI
+        Private Const MemReserve As UInteger = &H2000UI
 
         ''' <summary>
         ''' Memory allocation flag for committing memory.
         ''' </summary>
-        Private Const MEM_COMMIT As UInteger = &H1000UI
+        Private Const MemCommit As UInteger = &H1000UI
 
         ''' <summary>
         ''' Page protection constant for inaccessible memory.
         ''' </summary>
-        Private Const PAGE_NOACCESS As UInteger = &H1UI
+        Private Const PageNoaccess As UInteger = &H1UI
 
         ''' <summary>
         ''' Exit code indicating the process is still active.
         ''' </summary>
-        Private Const STILL_ACTIVE As UInteger = &H103UI
+        Private Const StillActive As UInteger = &H103UI
 
         ''' <summary>
         ''' Wait result indicating timeout.
         ''' </summary>
-        Private Const WAIT_TIMEOUT As UInteger = &H102UI
+        Private Const WaitTimeout As UInteger = &H102UI
 
         ''' <summary>
         ''' Allocation block size. Larger values increase effectiveness for 32-bit targets.
         ''' </summary>
-        Private Const ALLOCATION_SIZE As UInteger = &H20000000UI
+        Private Const AllocationSize As UInteger = &H20000000UI
 
         ''' <summary>
         ''' Allocates memory in a remote process.
@@ -264,15 +264,15 @@ Namespace CoreServices.WindowsApiInterop.Methods.TerminationMethods
                 Dim addr As IntPtr = VirtualAllocEx(
                     hProcess,
                     IntPtr.Zero,
-                    New UIntPtr(ALLOCATION_SIZE),
-                    MEM_RESERVE Or MEM_COMMIT,
-                    PAGE_NOACCESS)
+                    New UIntPtr(AllocationSize),
+                    MemReserve Or MemCommit,
+                    PageNoaccess)
 
                 If Equals(addr, IntPtr.Zero) Then
                     Dim waitResult As UInteger = WaitForSingleObject(hProcess, 1500UI)
-                    If waitResult <> WAIT_TIMEOUT Then
+                    If waitResult <> WaitTimeout Then
                         Dim exitCode As UInteger
-                        If GetExitCodeProcess(hProcess, exitCode) AndAlso exitCode <> STILL_ACTIVE Then
+                        If GetExitCodeProcess(hProcess, exitCode) AndAlso exitCode <> StillActive Then
                             Return True
                         End If
                     End If
@@ -286,13 +286,13 @@ Namespace CoreServices.WindowsApiInterop.Methods.TerminationMethods
 
                 If attempts Mod 4 = 0 Then
                     Dim exitCode As UInteger
-                    If GetExitCodeProcess(hProcess, exitCode) AndAlso exitCode <> STILL_ACTIVE Then
+                    If GetExitCodeProcess(hProcess, exitCode) AndAlso exitCode <> StillActive Then
                         Return True
                     End If
                 End If
             Loop
 
-            Return WaitForSingleObject(hProcess, 2000UI) <> WAIT_TIMEOUT
+            Return WaitForSingleObject(hProcess, 2000UI) <> WaitTimeout
         End Function
 
         ''' <summary>

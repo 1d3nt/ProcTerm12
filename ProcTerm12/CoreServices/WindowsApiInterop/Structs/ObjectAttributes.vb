@@ -6,7 +6,7 @@
     ''' </summary>
     ''' <remarks>
     ''' The <see cref="ObjectAttributes"/> structure is utilized in calls to functions such as 
-    ''' <see cref="NativeMethods.NtCreateFile"/> or <see cref="NativeMethods.NtOpenProcess"/>. 
+    ''' <see cref=UnsafeNativeMethods.NtCreateFile"/> or <see cref="UnsafeNativeMethods.NtOpenProcess"/>. 
     ''' It defines important characteristics of objects and how they are managed in Windows.
     ''' 
     ''' <list type="bullet">
